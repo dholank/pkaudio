@@ -1,0 +1,41 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# next
+/.next
+/out
+*.tsbuildinfo
+
+# production
+/build
+
+# local env
+.env
+.env*.local
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+
+# PKAudio local runtime artifacts
+/tmp
+/data
+/backups
+/downloads
+/outputs
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# local/export artifacts
+hermes_conversation_*.json
+*.tgz
