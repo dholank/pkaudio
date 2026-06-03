@@ -3,7 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getJobById, addJobLog, completeJob, failJob, markJobConverted, requeueJobAfterTransientFailure, updateJobProgress, type AudioDiagnosticsPatch } from "@/lib/jobs/repository";
 import type { JobView } from "@/lib/jobs/types";
-import { clampHeadroomDb, limiterLimitForHeadroomDb, qualityToVorbisQ, type AudioQuality } from "@/lib/audio/options";
+import { clampHeadroomDb, clampTargetLufs, formatTargetLufs, qualityToVorbisQ, type AudioQuality } from "@/lib/audio/options";
+import { buildLoudnormAnalyzeFilter, buildLoudnormApplyFilter, buildManualGainFilter, parseLoudnormAnalysis } from "@/lib/audio/processing";
 import { runCommand } from "@/lib/system/command";
 import { generateWaveformAnalysis } from "@/lib/worker/waveform";
 
@@ -170,14 +171,45 @@ export async function probeAudio(inputPath: string): Promise<ProbeResult> {
 export async function convertToOgg(job: JobView, inputPath: string, sampleRate: number, title: string | null) {
   const outputName = `${safeTitle(title)}-${job.id.slice(0, 8)}-${outputExtensionForQuality(job.quality)}.ogg`;
   const outputPath = path.join(outputRoot, outputName);
-  const filterParts = [`asetrate=${sampleRate}*${job.speed}`, "aresample=44100"];
+  const peakLimitDb = clampHeadroomDb(job.headroomDb);
+  const targetLufs = clampTargetLufs(job.targetLufs);
+  let filter = buildManualGainFilter({
+    sampleRate,
+    speed: job.speed,
+    amplifyDb: job.amplifyDb,
+    peakLimitDb,
+    limiterEnabled: job.limiterEnabled,
+  });
 
-  if (job.amplifyDb !== 0) filterParts.push(`volume=${job.amplifyDb}dB`);
-  if (job.limiterEnabled) filterParts.push(`alimiter=limit=${limiterLimitForHeadroomDb(job.headroomDb).toFixed(3)}`);
+  if (job.limiterEnabled) {
+    const analysisFilter = buildLoudnormAnalyzeFilter({
+      sampleRate,
+      speed: job.speed,
+      amplifyDb: job.amplifyDb,
+      targetLufs,
+      peakLimitDb,
+    });
+    await addJobLog(job.id, `FFmpeg loudnorm analysis filter: ${analysisFilter}`);
+    const { stderr } = await runCommand(
+      "ffmpeg",
+      ["-hide_banner", "-nostats", "-i", inputPath, "-vn", "-filter:a", analysisFilter, "-f", "null", "-"],
+      { timeout: 600000, maxBuffer: 1024 * 1024 * 10 },
+    );
+    const measured = parseLoudnormAnalysis(stderr);
+    if (!measured) throw new Error("FFmpeg loudnorm analysis did not return measurement JSON.");
+    filter = buildLoudnormApplyFilter({
+      sampleRate,
+      speed: job.speed,
+      amplifyDb: job.amplifyDb,
+      targetLufs,
+      peakLimitDb,
+      measured,
+    });
+    await addJobLog(job.id, `Loudness analysis: input ${measured.input_i} LUFS, true peak ${measured.input_tp} dBTP, offset ${measured.target_offset} dB.`);
+  }
 
-  const filter = filterParts.join(",");
   await addJobLog(job.id, `FFmpeg filter: ${filter}`);
-  await addJobLog(job.id, `Audio safety mode: ${job.audioSafetyMode}, Vorbis ${job.quality.toUpperCase()}, headroom target ${clampHeadroomDb(job.headroomDb)} dBFS.`);
+  await addJobLog(job.id, `Audio safety mode: ${job.audioSafetyMode}, Vorbis ${job.quality.toUpperCase()}, loudness target ${formatTargetLufs(targetLufs)}, peak limit ${peakLimitDb} dBFS.`);
 
   await runCommand(
     "ffmpeg",
@@ -249,9 +281,9 @@ export async function analyzeOutputAudio(job: JobView, outputPath: string): Prom
   const warnings: string[] = [];
   if (probe.duration !== null && probe.duration > 420) warnings.push("duration exceeds Roblox 7 minute audio limit");
   if (probe.sizeBytes !== null && probe.sizeBytes > 20 * 1024 * 1024) warnings.push("file size exceeds Roblox 20 MB upload limit");
-  const headroomTarget = clampHeadroomDb(job.headroomDb);
+  const peakLimit = clampHeadroomDb(job.headroomDb);
   if (volume.outputPeakDb !== null && volume.outputPeakDb > -0.5) warnings.push("peak is close to 0 dBFS; clipping risk after playback/encode");
-  else if (volume.outputPeakDb !== null && volume.outputPeakDb > headroomTarget) warnings.push(`peak exceeds configured ${headroomTarget} dBFS headroom target`);
+  else if (volume.outputPeakDb !== null && volume.outputPeakDb > peakLimit) warnings.push(`peak exceeds configured ${peakLimit} dBFS peak limit`);
   if (probe.sampleRate !== 44100) warnings.push(`output sample rate is ${probe.sampleRate} Hz instead of 44100 Hz`);
   if (probe.channels !== null && probe.channels !== 2) warnings.push(`output has ${probe.channels} channel(s) instead of stereo`);
 

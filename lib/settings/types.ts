@@ -7,6 +7,7 @@ export type AppSettingsView = {
   id: string;
   defaultSpeed: number;
   defaultAmplifyDb: number;
+  defaultTargetLufs: number;
   defaultQuality: AudioQuality;
   defaultAudioSafetyMode: AudioSafetyMode;
   defaultHeadroomDb: number;

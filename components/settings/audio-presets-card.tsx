@@ -18,9 +18,12 @@ import {
   AUDIO_SAFETY_MODE_PRESETS,
   AUDIO_SAFETY_MODES,
   MAX_HEADROOM_DB,
+  MAX_TARGET_LUFS,
   MIN_HEADROOM_DB,
+  MIN_TARGET_LUFS,
   QUALITY_LABELS,
   formatHeadroomDb,
+  formatTargetLufs,
   type AudioQuality,
   type AudioSafetyMode,
 } from "@/lib/audio/options";
@@ -34,6 +37,7 @@ type FormState = {
   description: string;
   speed: number;
   amplifyDb: number;
+  targetLufs: number;
   quality: AudioQuality;
   audioSafetyMode: AudioSafetyMode;
   headroomDb: number;
@@ -50,7 +54,8 @@ function emptyForm(credentials: CredentialView[]): FormState {
     name: "Fast SFX",
     description: "Reusable PKAudio conversion preset.",
     speed: 2.3,
-    amplifyDb: 3,
+    amplifyDb: 0,
+    targetLufs: -14,
     quality: "q7",
     audioSafetyMode: "roblox_safe",
     headroomDb: -3,
@@ -69,6 +74,7 @@ function formFromPreset(preset: AudioPresetView): FormState {
     description: preset.description ?? "",
     speed: preset.speed,
     amplifyDb: preset.amplifyDb,
+    targetLufs: preset.targetLufs,
     quality: preset.quality,
     audioSafetyMode: preset.audioSafetyMode,
     headroomDb: preset.headroomDb,
@@ -106,6 +112,7 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
       quality: preset.quality,
       limiterEnabled: preset.limiterEnabled,
       headroomDb: preset.headroomDb,
+      targetLufs: preset.targetLufs,
       ...(preset.amplifyDb !== undefined ? { amplifyDb: preset.amplifyDb } : {}),
     });
   }
@@ -128,6 +135,7 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
         description: form.description || null,
         speed: form.speed,
         amplifyDb: form.amplifyDb,
+        targetLufs: form.targetLufs,
         quality: form.quality,
         audioSafetyMode: form.audioSafetyMode,
         headroomDb: form.headroomDb,
@@ -178,7 +186,7 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
       <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
         <div>
           <CardTitle className="flex items-center gap-2"><Star className="size-4 text-cyan-300" /> Audio Presets</CardTitle>
-          <CardDescription>Save reusable speed/amplify/quality/headroom/upload combinations for Convert.</CardDescription>
+          <CardDescription>Save reusable speed, gain trim, LUFS target, peak limit, quality, and upload combinations for Convert.</CardDescription>
         </div>
         <Button variant="outline" size="sm" onClick={openCreate}><Plus /> New preset</Button>
       </CardHeader>
@@ -195,7 +203,7 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
                 </div>
                 {preset.description ? <p className="mt-1 text-sm text-zinc-500">{preset.description}</p> : null}
                 <p className="mt-2 text-xs text-zinc-500">
-                  {preset.speed.toFixed(2)}x • {preset.amplifyDb > 0 ? "+" : ""}{preset.amplifyDb} dB • limiter {preset.limiterEnabled ? formatHeadroomDb(preset.headroomDb) : "OFF"} • upload {preset.uploadEnabled ? "ON" : "OFF"}
+                  {preset.speed.toFixed(2)}x • gain {preset.amplifyDb > 0 ? "+" : ""}{preset.amplifyDb} dB • {preset.limiterEnabled ? `${formatTargetLufs(preset.targetLufs)} → peak ≤ ${formatHeadroomDb(preset.headroomDb)}` : "Limiter OFF"} • upload {preset.uploadEnabled ? "ON" : "OFF"}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -232,8 +240,13 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
               <Input type="number" min={0.5} max={3} step={0.01} value={form.speed} onChange={(event) => patchForm({ speed: toNumber(event.target.value, form.speed) })} />
             </div>
             <div className="space-y-2">
-              <Label>Amplify dB</Label>
+              <Label>Gain trim dB</Label>
               <Input type="number" min={-12} max={12} step={0.5} value={form.amplifyDb} onChange={(event) => patchForm({ amplifyDb: toNumber(event.target.value, form.amplifyDb), audioSafetyMode: "custom" })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Target loudness</Label>
+              <Input type="number" min={MIN_TARGET_LUFS} max={MAX_TARGET_LUFS} step={0.5} value={form.targetLufs} disabled={!form.limiterEnabled} onChange={(event) => patchForm({ targetLufs: toNumber(event.target.value, form.targetLufs), audioSafetyMode: "custom" })} />
+              <p className="text-xs text-zinc-500">LUFS normalization target.</p>
             </div>
             <div className="space-y-2">
               <Label>Safety mode</Label>
@@ -260,7 +273,7 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Headroom target</Label>
+              <Label>Peak limit</Label>
               <Input type="number" min={MIN_HEADROOM_DB} max={MAX_HEADROOM_DB} step={0.5} value={form.headroomDb} disabled={!form.limiterEnabled} onChange={(event) => patchForm({ headroomDb: toNumber(event.target.value, form.headroomDb), audioSafetyMode: "custom" })} />
             </div>
             <div className="space-y-2 sm:col-span-2">
@@ -271,7 +284,7 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
               </p>
             </div>
             <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] p-3">
-              <div><Label>Limiter</Label><p className="mt-1 text-xs text-zinc-500">Keep configured output headroom.</p></div>
+              <div><Label>Limiter + normalize</Label><p className="mt-1 text-xs text-zinc-500">Two-pass LUFS normalization plus peak ceiling.</p></div>
               <Switch checked={form.limiterEnabled} onCheckedChange={(value) => patchForm({ limiterEnabled: value, audioSafetyMode: "custom" })} />
             </div>
             <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] p-3">

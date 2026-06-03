@@ -9,7 +9,8 @@ export const SETTINGS_ID = "app";
 
 export const DEFAULT_SETTINGS = {
   defaultSpeed: 2.3,
-  defaultAmplifyDb: 3,
+  defaultAmplifyDb: 0,
+  defaultTargetLufs: -14,
   defaultQuality: "q7" as const,
   defaultAudioSafetyMode: "roblox_safe" as const,
   defaultHeadroomDb: -3,
@@ -32,6 +33,7 @@ export function toSettingsView(row: SettingsRow): AppSettingsView {
     id: row.id,
     defaultSpeed: row.defaultSpeed,
     defaultAmplifyDb: row.defaultAmplifyDb,
+    defaultTargetLufs: row.defaultTargetLufs,
     defaultQuality: row.defaultQuality,
     defaultAudioSafetyMode: row.defaultAudioSafetyMode,
     defaultHeadroomDb: row.defaultHeadroomDb,

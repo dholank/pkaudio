@@ -14,10 +14,13 @@ import {
   AUDIO_SAFETY_MODE_LABELS,
   AUDIO_SAFETY_MODES,
   MAX_HEADROOM_DB,
+  MAX_TARGET_LUFS,
   MIN_HEADROOM_DB,
+  MIN_TARGET_LUFS,
   QUALITY_DESCRIPTIONS,
   QUALITY_LABELS,
   formatHeadroomDb,
+  formatTargetLufs,
   type AudioQuality,
   type AudioSafetyMode,
 } from "@/lib/audio/options";
@@ -28,11 +31,24 @@ type AudioWarning = {
   message: string;
 };
 
-function buildInputWarnings({ amplifyDb, limiterEnabled, headroomDb, speed }: { amplifyDb: number; limiterEnabled: boolean; headroomDb: number; speed: number }) {
+function buildInputWarnings({
+  amplifyDb,
+  limiterEnabled,
+  headroomDb,
+  targetLufs,
+  speed,
+}: {
+  amplifyDb: number;
+  limiterEnabled: boolean;
+  headroomDb: number;
+  targetLufs: number;
+  speed: number;
+}) {
   const warnings: AudioWarning[] = [];
-  if (!limiterEnabled && amplifyDb > 3) warnings.push({ level: "danger", message: "Limiter OFF with boost above +3 dB can clip hard." });
-  if (limiterEnabled && headroomDb > -2) warnings.push({ level: "warn", message: "Hot headroom target; watch amber/red waveform bins after conversion." });
-  if (amplifyDb >= 8) warnings.push({ level: "warn", message: "Very high amplification. Use preview before uploading." });
+  if (!limiterEnabled && amplifyDb > 3) warnings.push({ level: "danger", message: "Limiter OFF with gain above +3 dB can clip hard." });
+  if (limiterEnabled && headroomDb > -2) warnings.push({ level: "warn", message: "Hot peak limit; watch amber/red waveform bins after conversion." });
+  if (limiterEnabled && targetLufs > -11) warnings.push({ level: "warn", message: "Very loud LUFS target can sound compressed after limiting." });
+  if (amplifyDb >= 8) warnings.push({ level: "warn", message: "Very high gain trim. Use preview before uploading." });
   if (speed >= 2.75) warnings.push({ level: "warn", message: "Extreme speed raises pitch and can sound brittle." });
   if (speed <= 0.65) warnings.push({ level: "warn", message: "Very slow playback can make files larger and muddy." });
   return warnings;
@@ -41,12 +57,14 @@ function buildInputWarnings({ amplifyDb, limiterEnabled, headroomDb, speed }: { 
 export function AudioSettingsCard({
   speed,
   amplifyDb,
+  targetLufs,
   quality,
   audioSafetyMode,
   headroomDb,
   limiterEnabled,
   onSpeedChange,
   onAmplifyChange,
+  onTargetLufsChange,
   onQualityChange,
   onAudioSafetyModeChange,
   onHeadroomChange,
@@ -54,18 +72,20 @@ export function AudioSettingsCard({
 }: {
   speed: number;
   amplifyDb: number;
+  targetLufs: number;
   quality: AudioQuality;
   audioSafetyMode: AudioSafetyMode;
   headroomDb: number;
   limiterEnabled: boolean;
   onSpeedChange: (value: number) => void;
   onAmplifyChange: (value: number) => void;
+  onTargetLufsChange: (value: number) => void;
   onQualityChange: (value: AudioQuality) => void;
   onAudioSafetyModeChange: (value: AudioSafetyMode) => void;
   onHeadroomChange: (value: number) => void;
   onLimiterChange: (value: boolean) => void;
 }) {
-  const warnings = buildInputWarnings({ amplifyDb, limiterEnabled, headroomDb, speed });
+  const warnings = buildInputWarnings({ amplifyDb, limiterEnabled, headroomDb, targetLufs, speed });
 
   return (
     <Card>
@@ -73,7 +93,7 @@ export function AudioSettingsCard({
         <CardTitle className="flex items-center gap-2">
           <Gauge className="size-4 text-violet-300" /> Audio Output
         </CardTitle>
-        <CardDescription>Playback-rate speed, gain, limiter headroom, safety mode, and granular OGG quality.</CardDescription>
+        <CardDescription>Playback-rate speed, LUFS normalization, gain trim, peak limiter, safety mode, and OGG quality.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2">
@@ -120,7 +140,10 @@ export function AudioSettingsCard({
 
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-4">
-            <Label className="flex items-center gap-2"><Volume2 className="size-4 text-cyan-300" /> Amplify</Label>
+            <div>
+              <Label className="flex items-center gap-2"><Volume2 className="size-4 text-cyan-300" /> Gain trim</Label>
+              <p className="mt-1 text-xs text-zinc-500">Applied after LUFS normalization when limiter is on; final limiter still catches peaks.</p>
+            </div>
             <Input type="number" min={-12} max={12} step={0.5} value={amplifyDb} onChange={(event) => onAmplifyChange(Number(event.target.value))} className="h-9 w-24 font-mono" />
           </div>
           <Slider min={-12} max={12} step={0.5} value={[amplifyDb]} onValueChange={([value]) => onAmplifyChange(value)} />
@@ -133,23 +156,31 @@ export function AudioSettingsCard({
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.035] p-3">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <Label className="flex items-center gap-2"><ShieldCheck className="size-4 text-emerald-300" /> Limiter</Label>
-                <p className="mt-1 text-xs text-zinc-500">Caps final output near configured headroom.</p>
+                <Label className="flex items-center gap-2"><ShieldCheck className="size-4 text-emerald-300" /> Limiter + normalize</Label>
+                <p className="mt-1 text-xs text-zinc-500">Enables two-pass LUFS normalization and final peak ceiling.</p>
               </div>
               <Switch checked={limiterEnabled} onCheckedChange={onLimiterChange} />
             </div>
           </div>
           <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.035] p-3">
             <div className="flex items-center justify-between gap-4">
-              <Label>Headroom target</Label>
+              <Label>Target loudness</Label>
+              <Badge variant={targetLufs > -12 ? "warning" : "secondary"}>{formatTargetLufs(targetLufs)}</Badge>
+            </div>
+            <Slider min={MIN_TARGET_LUFS} max={MAX_TARGET_LUFS} step={0.5} value={[targetLufs]} onValueChange={([value]) => onTargetLufsChange(value)} disabled={!limiterEnabled} />
+            <p className="text-xs text-zinc-500">Stabilizes perceived volume across songs.</p>
+          </div>
+          <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.035] p-3">
+            <div className="flex items-center justify-between gap-4">
+              <Label>Peak limit</Label>
               <Badge variant={headroomDb > -2 ? "warning" : "secondary"}>{formatHeadroomDb(headroomDb)}</Badge>
             </div>
             <Slider min={MIN_HEADROOM_DB} max={MAX_HEADROOM_DB} step={0.5} value={[headroomDb]} onValueChange={([value]) => onHeadroomChange(value)} disabled={!limiterEnabled} />
-            <p className="text-xs text-zinc-500">Also drives waveform amber threshold.</p>
+            <p className="text-xs text-zinc-500">Max output peak / waveform amber threshold.</p>
           </div>
         </div>
 
@@ -164,7 +195,7 @@ export function AudioSettingsCard({
         ) : null}
 
         <div className="rounded-xl border border-cyan-500/15 bg-cyan-500/8 px-3 py-3 text-xs leading-5 text-cyan-100/85">
-          Playback-rate mode changes speed and pitch together. Final output: OGG Vorbis • 44.1kHz • Stereo • {quality.toUpperCase()} • {limiterEnabled ? `Limiter ${formatHeadroomDb(headroomDb)}` : "Limiter OFF"}.
+          Playback-rate mode changes speed and pitch together. Final output: OGG Vorbis • 44.1kHz • Stereo • {quality.toUpperCase()} • {limiterEnabled ? `${formatTargetLufs(targetLufs)} → peak ≤ ${formatHeadroomDb(headroomDb)}` : "manual gain, limiter OFF"}.
         </div>
       </CardContent>
     </Card>

@@ -15,9 +15,12 @@ import {
   AUDIO_SAFETY_MODE_PRESETS,
   AUDIO_SAFETY_MODES,
   MAX_HEADROOM_DB,
+  MAX_TARGET_LUFS,
   MIN_HEADROOM_DB,
+  MIN_TARGET_LUFS,
   QUALITY_LABELS,
   formatHeadroomDb,
+  formatTargetLufs,
   type AudioQuality,
   type AudioSafetyMode,
 } from "@/lib/audio/options";
@@ -61,6 +64,7 @@ export function SettingsDefaultsCard({
       defaultQuality: preset.quality,
       defaultLimiterEnabled: preset.limiterEnabled,
       defaultHeadroomDb: preset.headroomDb,
+      defaultTargetLufs: preset.targetLufs,
       ...(preset.amplifyDb !== undefined ? { defaultAmplifyDb: preset.amplifyDb } : {}),
     });
   }
@@ -75,6 +79,7 @@ export function SettingsDefaultsCard({
           body: JSON.stringify({
             defaultSpeed: settings.defaultSpeed,
             defaultAmplifyDb: settings.defaultAmplifyDb,
+            defaultTargetLufs: settings.defaultTargetLufs,
             defaultQuality: settings.defaultQuality,
             defaultAudioSafetyMode: settings.defaultAudioSafetyMode,
             defaultHeadroomDb: settings.defaultHeadroomDb,
@@ -122,7 +127,7 @@ export function SettingsDefaultsCard({
         <section className="space-y-4">
           <div>
             <h3 className="text-sm font-medium text-white">Audio defaults</h3>
-            <p className="mt-1 text-xs text-zinc-500">Playback-rate speed, amplification, OGG quality, and limiter defaults.</p>
+            <p className="mt-1 text-xs text-zinc-500">Playback-rate speed, LUFS normalization, gain trim, OGG quality, and peak limiter defaults.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -138,7 +143,7 @@ export function SettingsDefaultsCard({
               />
             </div>
             <div className="space-y-2">
-              <Label>Default amplify</Label>
+              <Label>Default gain trim</Label>
               <Input
                 type="number"
                 min={-12}
@@ -172,11 +177,11 @@ export function SettingsDefaultsCard({
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] p-3">
-              <div><Label>Limiter default</Label><p className="mt-1 text-xs text-zinc-500">Caps final output near headroom target.</p></div>
+              <div><Label>Limiter + normalize default</Label><p className="mt-1 text-xs text-zinc-500">Two-pass LUFS normalization plus final peak ceiling.</p></div>
               <Switch checked={settings.defaultLimiterEnabled} onCheckedChange={(value) => patchLocal({ defaultLimiterEnabled: value, defaultAudioSafetyMode: "custom" })} />
             </div>
             <div className="space-y-2 rounded-xl border border-white/10 bg-white/[0.035] p-3">
-              <div className="flex items-center justify-between gap-3"><Label>Headroom target</Label><span className="font-mono text-xs text-zinc-300">{formatHeadroomDb(settings.defaultHeadroomDb)}</span></div>
+              <div className="flex items-center justify-between gap-3"><Label>Peak limit</Label><span className="font-mono text-xs text-zinc-300">{formatHeadroomDb(settings.defaultHeadroomDb)}</span></div>
               <Input
                 type="number"
                 min={MIN_HEADROOM_DB}
@@ -184,6 +189,21 @@ export function SettingsDefaultsCard({
                 step={0.5}
                 value={settings.defaultHeadroomDb}
                 onChange={(event) => patchLocal({ defaultHeadroomDb: toNumber(event.target.value, settings.defaultHeadroomDb), defaultAudioSafetyMode: "custom" })}
+                className="font-mono"
+                disabled={!settings.defaultLimiterEnabled}
+              />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2 rounded-xl border border-white/10 bg-white/[0.035] p-3">
+              <div className="flex items-center justify-between gap-3"><Label>Target loudness</Label><span className="font-mono text-xs text-zinc-300">{formatTargetLufs(settings.defaultTargetLufs)}</span></div>
+              <Input
+                type="number"
+                min={MIN_TARGET_LUFS}
+                max={MAX_TARGET_LUFS}
+                step={0.5}
+                value={settings.defaultTargetLufs}
+                onChange={(event) => patchLocal({ defaultTargetLufs: toNumber(event.target.value, settings.defaultTargetLufs), defaultAudioSafetyMode: "custom" })}
                 className="font-mono"
                 disabled={!settings.defaultLimiterEnabled}
               />

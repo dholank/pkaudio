@@ -8,6 +8,19 @@ export const DEFAULT_HEADROOM_DB = -3;
 export const MIN_HEADROOM_DB = -6;
 export const MAX_HEADROOM_DB = -1;
 
+export const DEFAULT_TARGET_LUFS = -14;
+export const MIN_TARGET_LUFS = -18;
+export const MAX_TARGET_LUFS = -10;
+export const LOUDNESS_RANGE_LUFS = 11;
+
+export type LoudnormAnalysis = {
+  input_i: string;
+  input_tp: string;
+  input_lra: string;
+  input_thresh: string;
+  target_offset: string;
+};
+
 export const QUALITY_LABELS: Record<AudioQuality, string> = {
   q5: "q5 Smaller",
   q6: "q6 Balanced",
@@ -30,16 +43,16 @@ export const AUDIO_SAFETY_MODE_LABELS: Record<AudioSafetyMode, string> = {
 };
 
 export const AUDIO_SAFETY_MODE_DESCRIPTIONS: Record<AudioSafetyMode, string> = {
-  roblox_safe: "Conservative -3 dBFS headroom for Roblox moderation/playback safety.",
-  high_quality: "Keeps limiter on and uses q8 with a little more headroom for clean output.",
-  loud: "Hotter output for punchy SFX; waveform warnings become more important.",
-  custom: "Manual quality, limiter, gain, and headroom controls.",
+  roblox_safe: "Conservative -14 LUFS loudness normalization with a -3 dBFS peak limit for Roblox safety.",
+  high_quality: "Balanced -13 LUFS normalization, q8 Vorbis, and a -2.5 dBFS peak limit for clean output.",
+  loud: "Hotter -12 LUFS normalization with a -2 dBFS peak limit for punchy SFX/BGM.",
+  custom: "Manual quality, loudness target, gain trim, limiter, and peak limit controls.",
 };
 
-export const AUDIO_SAFETY_MODE_PRESETS: Record<Exclude<AudioSafetyMode, "custom">, { quality: AudioQuality; limiterEnabled: boolean; headroomDb: number; amplifyDb?: number }> = {
-  roblox_safe: { quality: "q7", limiterEnabled: true, headroomDb: -3 },
-  high_quality: { quality: "q8", limiterEnabled: true, headroomDb: -2.5 },
-  loud: { quality: "q7", limiterEnabled: true, headroomDb: -1.5, amplifyDb: 4 },
+export const AUDIO_SAFETY_MODE_PRESETS: Record<Exclude<AudioSafetyMode, "custom">, { quality: AudioQuality; limiterEnabled: boolean; headroomDb: number; targetLufs: number; amplifyDb?: number }> = {
+  roblox_safe: { quality: "q7", limiterEnabled: true, headroomDb: -3, targetLufs: -14, amplifyDb: 0 },
+  high_quality: { quality: "q8", limiterEnabled: true, headroomDb: -2.5, targetLufs: -13, amplifyDb: 0 },
+  loud: { quality: "q7", limiterEnabled: true, headroomDb: -2, targetLufs: -12, amplifyDb: 0 },
 };
 
 export function isAudioQuality(value: string): value is AudioQuality {
@@ -55,6 +68,11 @@ export function clampHeadroomDb(value: number) {
   return Math.max(MIN_HEADROOM_DB, Math.min(MAX_HEADROOM_DB, value));
 }
 
+export function clampTargetLufs(value: number) {
+  if (!Number.isFinite(value)) return DEFAULT_TARGET_LUFS;
+  return Math.max(MIN_TARGET_LUFS, Math.min(MAX_TARGET_LUFS, value));
+}
+
 export function qualityToVorbisQ(quality: AudioQuality) {
   return quality.replace("q", "");
 }
@@ -66,4 +84,9 @@ export function limiterLimitForHeadroomDb(headroomDb: number) {
 export function formatHeadroomDb(headroomDb: number) {
   const value = clampHeadroomDb(headroomDb);
   return `${value.toFixed(value % 1 === 0 ? 0 : 1)} dBFS`;
+}
+
+export function formatTargetLufs(targetLufs: number) {
+  const value = clampTargetLufs(targetLufs);
+  return `${value.toFixed(value % 1 === 0 ? 0 : 1)} LUFS`;
 }

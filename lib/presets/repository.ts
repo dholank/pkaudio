@@ -16,6 +16,7 @@ export function toAudioPresetView(row: AudioPresetRow): AudioPresetView {
     description: row.description,
     speed: row.speed,
     amplifyDb: row.amplifyDb,
+    targetLufs: row.targetLufs,
     quality: row.quality,
     audioSafetyMode: row.audioSafetyMode,
     headroomDb: row.headroomDb,
@@ -40,6 +41,7 @@ function normalizePresetPayload(input: AudioPresetPayloadInput) {
     description: normalizeNullableString(input.description),
     speed: input.speed,
     amplifyDb: input.amplifyDb,
+    targetLufs: input.targetLufs,
     quality: input.quality,
     audioSafetyMode: input.audioSafetyMode,
     headroomDb: input.headroomDb,
@@ -98,6 +100,7 @@ export async function updateAudioPreset(id: string, input: AudioPresetPatchInput
   if (input.description !== undefined) patch.description = normalizeNullableString(input.description);
   if (input.speed !== undefined) patch.speed = input.speed;
   if (input.amplifyDb !== undefined) patch.amplifyDb = input.amplifyDb;
+  if (input.targetLufs !== undefined) patch.targetLufs = input.targetLufs;
   if (input.quality !== undefined) patch.quality = input.quality;
   if (input.audioSafetyMode !== undefined) patch.audioSafetyMode = input.audioSafetyMode;
   if (input.headroomDb !== undefined) patch.headroomDb = input.headroomDb;

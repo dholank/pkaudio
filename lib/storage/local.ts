@@ -25,9 +25,8 @@ export type JobArtifactCleanupResult = {
   errors: string[];
 };
 
-const cwd = process.cwd();
-const outputRoot = path.join(/* turbopackIgnore: true */ cwd, "outputs");
-const tempRoot = path.join(/* turbopackIgnore: true */ cwd, "tmp", "jobs");
+const outputRoot = path.join(/*turbopackIgnore: true*/ process.cwd(), "outputs");
+const tempRoot = path.join(/*turbopackIgnore: true*/ process.cwd(), "tmp", "jobs");
 
 function insideRoot(root: string, target: string) {
   const resolvedRoot = path.resolve(root);

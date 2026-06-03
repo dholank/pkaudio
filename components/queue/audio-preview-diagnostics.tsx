@@ -41,7 +41,7 @@ function buildWarnings(job: JobView) {
 
   if (job.outputPeakDb !== null) {
     if (job.outputPeakDb > -0.5) warnings.push({ level: "error", message: "Peak is close to 0 dBFS; clipping risk." });
-    else if (job.outputPeakDb > job.headroomDb) warnings.push({ level: "warn", message: `Peak is above the ${formatHeadroomDb(job.headroomDb)} headroom target.` });
+    else if (job.outputPeakDb > job.headroomDb) warnings.push({ level: "warn", message: `Peak is above the ${formatHeadroomDb(job.headroomDb)} peak limit.` });
   }
 
   if (job.outputSampleRate !== null && job.outputSampleRate !== 44100) {
@@ -96,7 +96,7 @@ export function AudioPreviewDiagnostics({ job }: { job: JobView }) {
       <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <DiagnosticTile label="Duration" value={formatDuration(job.outputDurationSec)} detail="Roblox max 7:00" />
         <DiagnosticTile label="Size" value={job.outputSizeBytes !== null ? formatBytes(job.outputSizeBytes) : "—"} detail="Roblox max 20 MB" />
-        <DiagnosticTile label="Peak" value={formatDbValue(job.outputPeakDb, " dBFS")} detail={`Target ≤ ${formatHeadroomDb(job.headroomDb)}`} />
+        <DiagnosticTile label="Peak" value={formatDbValue(job.outputPeakDb, " dBFS")} detail={`Peak limit ≤ ${formatHeadroomDb(job.headroomDb)}`} />
         <DiagnosticTile label="Mean" value={formatDbValue(job.outputMeanDb)} />
         <DiagnosticTile label="Rate" value={job.outputSampleRate ? `${job.outputSampleRate} Hz` : "—"} detail="Target 44100 Hz" />
         <DiagnosticTile label="Channels" value={job.outputChannels ? `${job.outputChannels}` : "—"} detail="Target stereo" />

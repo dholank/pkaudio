@@ -319,16 +319,18 @@ Pipeline audio final secara konsep:
 1. Probe input sample rate.
 2. Apply playback-rate speed using input sample rate.
 3. Resample output ke 44100 Hz.
-4. Apply amplification dB.
-5. Apply limiter/safety filter.
-6. Encode ke OGG Vorbis.
-7. Probe output duration, size, sample rate, channels.
+4. Jika limiter/normalize ON: jalankan 2-pass LUFS normalization untuk perceived loudness yang konsisten.
+5. Apply gain trim dB (`amplifyDb`) setelah normalization, lalu final peak limiter.
+6. Jika limiter OFF: apply manual gain langsung tanpa LUFS normalization.
+7. Encode ke OGG Vorbis.
+8. Probe output duration, size, peak, sample rate, channels.
 
 Limiter target:
 
 - Gunakan limiter/final safety processing agar output tidak terlalu clipping.
-- Target awal limiter dapat mengikuti behavior prototype: safe ceiling sekitar 0.707 amplitude.
-- Loudness refinement bisa di-tune setelah MVP berdasarkan hasil test.
+- Target peak limit default Roblox Safe: `-3 dBFS`.
+- Target loudness default Roblox Safe: `-14 LUFS`.
+- Gain trim tidak boleh menaikkan final peak melewati configured peak limit saat limiter aktif.
 
 ---
 

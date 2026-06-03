@@ -11,6 +11,11 @@ function formatDb(value: number | null) {
   return `${value > 0 ? "+" : ""}${value.toFixed(2)} dBFS`;
 }
 
+function formatLimitDb(value: number) {
+  if (!Number.isFinite(value)) return "—";
+  return `${value.toFixed(value % 1 === 0 ? 0 : 1)} dBFS`;
+}
+
 function clamp01(value: number) {
   if (!Number.isFinite(value)) return 0;
   return Math.max(0, Math.min(1, value));
@@ -56,7 +61,7 @@ function WaveformSvg({ analysis }: { analysis: WaveformAnalysis }) {
       })}
       <path d={`${peakPath} L${width},${center} L0,${center} Z`} fill={`url(#${gradientId})`} transform={`translate(0 ${6})`} />
       <path d={rmsPath} fill="none" stroke="rgb(167 139 250)" strokeWidth="2" transform={`translate(0 ${14})`} />
-      <text x="10" y="18" fill="rgba(255,255,255,0.55)" fontSize="11">Peak bars • purple RMS • amber = above -3 dBFS</text>
+      <text x="10" y="18" fill="rgba(255,255,255,0.55)" fontSize="11">Peak bars • purple RMS • amber = above {formatLimitDb(analysis.summary.headroomTargetDb)} peak limit</text>
     </svg>
   );
 }
@@ -98,8 +103,8 @@ export function WaveformLoudnessGraph({ outputPath }: { outputPath: string | nul
   const badge = useMemo(() => {
     if (!analysis) return null;
     if (analysis.summary.clipBins > 0) return <Badge variant="destructive">{analysis.summary.clipBins} clipping bins</Badge>;
-    if (analysis.summary.headroomExceededBins > 0) return <Badge variant="warning">{analysis.summary.headroomExceededBins} above -3 dBFS</Badge>;
-    return <Badge variant="success">Headroom OK</Badge>;
+    if (analysis.summary.headroomExceededBins > 0) return <Badge variant="warning">{analysis.summary.headroomExceededBins} above peak limit</Badge>;
+    return <Badge variant="success">Peak limit OK</Badge>;
   }, [analysis]);
 
   if (!outputPath) return null;
@@ -128,11 +133,11 @@ export function WaveformLoudnessGraph({ outputPath }: { outputPath: string | nul
           </div>
           {analysis.summary.clipBins || analysis.summary.headroomExceededBins ? (
             <div className="mt-3 flex gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-              <AlertTriangle className="mt-0.5 size-4 shrink-0" /> Peaks above target are highlighted. Lower amplify or keep limiter enabled if this looks too hot.
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" /> Peaks above the limit are highlighted. Lower gain trim or keep limiter enabled if this looks too hot.
             </div>
           ) : (
             <div className="mt-3 flex gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100">
-              <Activity className="mt-0.5 size-4 shrink-0" /> Waveform stays under the -3 dBFS headroom target.
+              <Activity className="mt-0.5 size-4 shrink-0" /> Waveform stays under the {formatLimitDb(analysis.summary.headroomTargetDb)} peak limit.
             </div>
           )}
         </>

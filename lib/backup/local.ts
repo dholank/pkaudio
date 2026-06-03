@@ -52,8 +52,8 @@ export type RestoreResult = {
   activeJobIdsChecked: string[];
 };
 
-const backupRoot = path.join(/* turbopackIgnore: true */ process.cwd(), "backups");
-const stagingRoot = path.join(/* turbopackIgnore: true */ process.cwd(), "tmp", "backups");
+const backupRoot = path.join(/*turbopackIgnore: true*/ process.cwd(), "backups");
+const stagingRoot = path.join(/*turbopackIgnore: true*/ process.cwd(), "tmp", "backups");
 
 function iso(timestamp = Date.now()) {
   return new Date(timestamp).toISOString();
@@ -180,12 +180,14 @@ export async function createBackup(options: { mode: BackupMode; label?: string |
     },
   };
 
+  const archiveEntries = ["backup-manifest.json", "data", ...(outputsIncluded ? ["outputs"] : [])];
+
   await fs.writeFile(path.join(stagePath, "backup-manifest.json"), JSON.stringify(manifest, null, 2));
-  await runCommand("tar", ["-czf", archivePath, "-C", stagePath, "."], { timeout: 120000, maxBuffer: 4 * 1024 * 1024 });
+  await runCommand("tar", ["-czf", archivePath, "-C", stagePath, ...archiveEntries], { timeout: 120000, maxBuffer: 4 * 1024 * 1024 });
   manifest.stats.archiveBytes = await fileSize(archivePath);
   await fs.writeFile(path.join(stagePath, "backup-manifest.json"), JSON.stringify(manifest, null, 2));
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
-  await runCommand("tar", ["-czf", archivePath, "-C", stagePath, "."], { timeout: 120000, maxBuffer: 4 * 1024 * 1024 });
+  await runCommand("tar", ["-czf", archivePath, "-C", stagePath, ...archiveEntries], { timeout: 120000, maxBuffer: 4 * 1024 * 1024 });
   manifest.stats.archiveBytes = await fileSize(archivePath);
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
   await fs.rm(stagePath, { recursive: true, force: true });

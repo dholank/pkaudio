@@ -69,6 +69,7 @@ export function ConvertClient({
   const [savingPreset, setSavingPreset] = useState(false);
   const [speed, setSpeed] = useState(defaultPreset?.speed ?? initialSettings.defaultSpeed);
   const [amplifyDb, setAmplifyDb] = useState(defaultPreset?.amplifyDb ?? initialSettings.defaultAmplifyDb);
+  const [targetLufs, setTargetLufs] = useState(defaultPreset?.targetLufs ?? initialSettings.defaultTargetLufs);
   const [quality, setQuality] = useState<AudioQuality>(defaultPreset?.quality ?? initialSettings.defaultQuality);
   const [audioSafetyMode, setAudioSafetyMode] = useState<AudioSafetyMode>(defaultPreset?.audioSafetyMode ?? initialSettings.defaultAudioSafetyMode);
   const [headroomDb, setHeadroomDb] = useState(defaultPreset?.headroomDb ?? initialSettings.defaultHeadroomDb);
@@ -91,6 +92,7 @@ export function ConvertClient({
     if (!preset) return;
     setSpeed(preset.speed);
     setAmplifyDb(preset.amplifyDb);
+    setTargetLufs(preset.targetLufs);
     setQuality(preset.quality);
     setAudioSafetyMode(preset.audioSafetyMode);
     setHeadroomDb(preset.headroomDb);
@@ -113,6 +115,7 @@ export function ConvertClient({
         description: "Saved from Convert page.",
         speed,
         amplifyDb,
+        targetLufs,
         quality,
         audioSafetyMode,
         headroomDb,
@@ -139,6 +142,7 @@ export function ConvertClient({
     setQuality(preset.quality);
     setLimiterEnabled(preset.limiterEnabled);
     setHeadroomDb(preset.headroomDb);
+    setTargetLufs(preset.targetLufs);
     if (preset.amplifyDb !== undefined) setAmplifyDb(preset.amplifyDb);
   }
 
@@ -155,6 +159,7 @@ export function ConvertClient({
         urls: supportedUrls,
         speed,
         amplifyDb,
+        targetLufs,
         quality,
         audioSafetyMode,
         headroomDb,
@@ -207,12 +212,14 @@ export function ConvertClient({
         <AudioSettingsCard
           speed={speed}
           amplifyDb={amplifyDb}
+          targetLufs={targetLufs}
           quality={quality}
           audioSafetyMode={audioSafetyMode}
           headroomDb={headroomDb}
           limiterEnabled={limiterEnabled}
           onSpeedChange={setSpeed}
           onAmplifyChange={(value) => { setAmplifyDb(value); setAudioSafetyMode("custom"); }}
+          onTargetLufsChange={(value) => { setTargetLufs(value); setAudioSafetyMode("custom"); }}
           onQualityChange={(value) => { setQuality(value); setAudioSafetyMode("custom"); }}
           onAudioSafetyModeChange={handleSafetyModeChange}
           onHeadroomChange={(value) => { setHeadroomDb(value); setAudioSafetyMode("custom"); }}
@@ -234,6 +241,7 @@ export function ConvertClient({
         validUrls={stats.valid}
         speed={speed}
         amplifyDb={amplifyDb}
+        targetLufs={targetLufs}
         quality={quality}
         audioSafetyMode={audioSafetyMode}
         headroomDb={headroomDb}

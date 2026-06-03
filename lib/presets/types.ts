@@ -6,6 +6,7 @@ export type AudioPresetView = {
   description: string | null;
   speed: number;
   amplifyDb: number;
+  targetLufs: number;
   quality: AudioQuality;
   audioSafetyMode: AudioSafetyMode;
   headroomDb: number;

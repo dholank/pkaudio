@@ -7,7 +7,7 @@ YouTube / SoundCloud URL
   -> queued in local SQLite
   -> local worker downloads/extracts audio with yt-dlp
   -> ffprobe detects the real input sample rate
-  -> FFmpeg applies playback-rate speed + amplification + limiter
+  -> FFmpeg applies playback-rate speed + two-pass LUFS normalization + gain trim + peak limiter
   -> OGG Vorbis output is written to outputs/
   -> upload-enabled jobs enter converted status after local OGG is ready
   -> serial upload worker uploads converted OGGs using encrypted Open Cloud API key
@@ -29,7 +29,7 @@ Implemented:
 - Split status pipeline: `queued -> downloading -> probing -> converting -> converted -> uploading -> done`, where `converted` means the local OGG is ready and upload is waiting for the batch conversion gate/serial upload lane.
 - High-quality OGG Vorbis output (`q5`-`q8`) with advanced audio safety modes: Roblox Safe, High Quality, Loud, and Custom.
 - Playback-rate speed effect via `asetrate={input_sample_rate}*{speed},aresample=44100`; this changes speed and pitch naturally.
-- Dynamic limiter headroom from `-6` to `-1 dBFS` using `alimiter=limit={10^(headroomDb/20)}`.
+- Two-pass LUFS normalization for consistent perceived volume (`target_lufs`) plus dynamic peak limit from `-6` to `-1 dBFS` using `alimiter=limit={10^(headroomDb/20)}`.
 - Worker-side output diagnostics: duration, file size, peak/mean volume, sample rate, channels.
 - Waveform/loudness graph sidecars and lazy UI previews.
 - Roblox Open Cloud Assets upload using multipart `assetType: "Audio"`, selected user/group creator target, and encrypted credential decrypt only in worker memory.
@@ -227,10 +227,16 @@ Root `/` redirects to `/convert`.
 
 PKAudio uses playback-rate mode, not tempo-preserving mode. Speed-up also raises pitch naturally.
 
-Filter shape:
+Limiter/normalize ON filter shape:
 
 ```txt
-asetrate={input_sample_rate}*{speed},aresample=44100,volume={amplifyDb}dB,alimiter=limit={10^(headroomDb/20)}
+asetrate={input_sample_rate}*{speed},aresample=44100,loudnorm=I={targetLufs}:TP={headroomDb}:LRA=11:measured_*,volume={amplifyDb}dB,alimiter=limit={10^(headroomDb/20)}
+```
+
+Limiter OFF manual-gain shape:
+
+```txt
+asetrate={input_sample_rate}*{speed},aresample=44100,volume={amplifyDb}dB
 ```
 
 Rules:
@@ -240,11 +246,11 @@ Rules:
 - Output target: `44100 Hz`, stereo.
 - Quality presets: `q5`, `q6`, `q7`, `q8`.
 - Safety modes:
-  - Roblox Safe: q7, limiter on, `-3 dBFS` headroom.
-  - High Quality: q8, limiter on, `-2.5 dBFS` headroom.
-  - Loud: q7, limiter on, `-1.5 dBFS` headroom, boosted gain.
-  - Custom: manual quality/gain/limiter/headroom.
-- Amplification is applied before limiter.
+  - Roblox Safe: q7, limiter/normalize on, `-14 LUFS` target, `-3 dBFS` peak limit.
+  - High Quality: q8, limiter/normalize on, `-13 LUFS` target, `-2.5 dBFS` peak limit.
+  - Loud: q7, limiter/normalize on, `-12 LUFS` target, `-2 dBFS` peak limit.
+  - Custom: manual quality, target LUFS, gain trim, limiter, and peak limit.
+- `amplifyDb` is now a gain trim after LUFS normalization when limiter/normalize is on; the final limiter still caps peaks at the configured peak limit. When limiter is off, `amplifyDb` behaves as simple manual gain.
 
 Encoder args:
 
@@ -268,7 +274,7 @@ Roblox warning targets:
 
 - Audio duration max `7:00` / `420s`.
 - Upload request size max `20 MB`.
-- Peak should stay under configured headroom; above `-1 dBFS` is clipping risk.
+- Peak should stay under the configured peak limit; above `-1 dBFS` is clipping risk.
 - Sample rate should be `44100 Hz`.
 - Channels should be stereo / `2`.
 

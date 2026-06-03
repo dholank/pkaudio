@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { AUDIO_QUALITIES, AUDIO_SAFETY_MODES, MAX_HEADROOM_DB, MIN_HEADROOM_DB } from "@/lib/audio/options";
+import { AUDIO_QUALITIES, AUDIO_SAFETY_MODES, MAX_HEADROOM_DB, MAX_TARGET_LUFS, MIN_HEADROOM_DB, MIN_TARGET_LUFS } from "@/lib/audio/options";
 
 export const settingsPatchSchema = z.object({
   defaultSpeed: z.number().min(0.5).max(3).optional(),
   defaultAmplifyDb: z.number().min(-12).max(12).optional(),
+  defaultTargetLufs: z.number().min(MIN_TARGET_LUFS).max(MAX_TARGET_LUFS).optional(),
   defaultQuality: z.enum(AUDIO_QUALITIES).optional(),
   defaultAudioSafetyMode: z.enum(AUDIO_SAFETY_MODES).optional(),
   defaultHeadroomDb: z.number().min(MIN_HEADROOM_DB).max(MAX_HEADROOM_DB).optional(),

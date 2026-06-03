@@ -42,6 +42,7 @@ function ensureSchema(sqlite: SqliteDatabase) {
       url_count INTEGER NOT NULL,
       speed REAL NOT NULL,
       amplify_db REAL NOT NULL,
+      target_lufs REAL NOT NULL DEFAULT -14,
       quality TEXT NOT NULL CHECK (quality IN ('q5', 'q6', 'q7', 'q8')),
       audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe' CHECK (audio_safety_mode IN ('roblox_safe', 'high_quality', 'loud', 'custom')),
       headroom_db REAL NOT NULL DEFAULT -3,
@@ -64,6 +65,7 @@ function ensureSchema(sqlite: SqliteDatabase) {
       progress INTEGER NOT NULL DEFAULT 0,
       speed REAL NOT NULL,
       amplify_db REAL NOT NULL,
+      target_lufs REAL NOT NULL DEFAULT -14,
       quality TEXT NOT NULL CHECK (quality IN ('q5', 'q6', 'q7', 'q8')),
       audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe' CHECK (audio_safety_mode IN ('roblox_safe', 'high_quality', 'loud', 'custom')),
       headroom_db REAL NOT NULL DEFAULT -3,
@@ -121,6 +123,7 @@ function ensureSchema(sqlite: SqliteDatabase) {
       id TEXT PRIMARY KEY NOT NULL,
       default_speed REAL NOT NULL,
       default_amplify_db REAL NOT NULL,
+      default_target_lufs REAL NOT NULL DEFAULT -14,
       default_quality TEXT NOT NULL CHECK (default_quality IN ('q5', 'q6', 'q7', 'q8')),
       default_audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe' CHECK (default_audio_safety_mode IN ('roblox_safe', 'high_quality', 'loud', 'custom')),
       default_headroom_db REAL NOT NULL DEFAULT -3,
@@ -172,6 +175,7 @@ function ensureSchema(sqlite: SqliteDatabase) {
       description TEXT,
       speed REAL NOT NULL,
       amplify_db REAL NOT NULL,
+      target_lufs REAL NOT NULL DEFAULT -14,
       quality TEXT NOT NULL CHECK (quality IN ('q5', 'q6', 'q7', 'q8')),
       audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe' CHECK (audio_safety_mode IN ('roblox_safe', 'high_quality', 'loud', 'custom')),
       headroom_db REAL NOT NULL DEFAULT -3,
@@ -210,6 +214,7 @@ function ensureSettingsMigrations(sqlite: SqliteDatabase) {
       id TEXT PRIMARY KEY NOT NULL,
       default_speed REAL NOT NULL,
       default_amplify_db REAL NOT NULL,
+      default_target_lufs REAL NOT NULL DEFAULT -14,
       default_quality TEXT NOT NULL CHECK (default_quality IN ('q5', 'q6', 'q7', 'q8')),
       default_audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe' CHECK (default_audio_safety_mode IN ('roblox_safe', 'high_quality', 'loud', 'custom')),
       default_headroom_db REAL NOT NULL DEFAULT -3,
@@ -235,6 +240,7 @@ function ensureAudioPresetMigrations(sqlite: SqliteDatabase) {
       description TEXT,
       speed REAL NOT NULL,
       amplify_db REAL NOT NULL,
+      target_lufs REAL NOT NULL DEFAULT -14,
       quality TEXT NOT NULL CHECK (quality IN ('q5', 'q6', 'q7', 'q8')),
       audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe' CHECK (audio_safety_mode IN ('roblox_safe', 'high_quality', 'loud', 'custom')),
       headroom_db REAL NOT NULL DEFAULT -3,
@@ -307,6 +313,7 @@ function ensureAdvancedAudioTableMigrations(sqlite: SqliteDatabase) {
         url_count INTEGER NOT NULL,
         speed REAL NOT NULL,
         amplify_db REAL NOT NULL,
+        target_lufs REAL NOT NULL DEFAULT -14,
         quality TEXT NOT NULL CHECK (quality IN ('q5', 'q6', 'q7', 'q8')),
         audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe' CHECK (audio_safety_mode IN ('roblox_safe', 'high_quality', 'loud', 'custom')),
         headroom_db REAL NOT NULL DEFAULT -3,
@@ -329,6 +336,7 @@ function ensureAdvancedAudioTableMigrations(sqlite: SqliteDatabase) {
         progress INTEGER NOT NULL DEFAULT 0,
         speed REAL NOT NULL,
         amplify_db REAL NOT NULL,
+        target_lufs REAL NOT NULL DEFAULT -14,
         quality TEXT NOT NULL CHECK (quality IN ('q5', 'q6', 'q7', 'q8')),
         audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe' CHECK (audio_safety_mode IN ('roblox_safe', 'high_quality', 'loud', 'custom')),
         headroom_db REAL NOT NULL DEFAULT -3,
@@ -365,6 +373,7 @@ function ensureAdvancedAudioTableMigrations(sqlite: SqliteDatabase) {
         id TEXT PRIMARY KEY NOT NULL,
         default_speed REAL NOT NULL,
         default_amplify_db REAL NOT NULL,
+        default_target_lufs REAL NOT NULL DEFAULT -14,
         default_quality TEXT NOT NULL CHECK (default_quality IN ('q5', 'q6', 'q7', 'q8')),
         default_audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe' CHECK (default_audio_safety_mode IN ('roblox_safe', 'high_quality', 'loud', 'custom')),
         default_headroom_db REAL NOT NULL DEFAULT -3,
@@ -386,6 +395,7 @@ function ensureAdvancedAudioTableMigrations(sqlite: SqliteDatabase) {
         description TEXT,
         speed REAL NOT NULL,
         amplify_db REAL NOT NULL,
+        target_lufs REAL NOT NULL DEFAULT -14,
         quality TEXT NOT NULL CHECK (quality IN ('q5', 'q6', 'q7', 'q8')),
         audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe' CHECK (audio_safety_mode IN ('roblox_safe', 'high_quality', 'loud', 'custom')),
         headroom_db REAL NOT NULL DEFAULT -3,
@@ -399,15 +409,15 @@ function ensureAdvancedAudioTableMigrations(sqlite: SqliteDatabase) {
       );
 
       INSERT INTO batches_new (
-        id, name, status, url_count, speed, amplify_db, quality, audio_safety_mode, headroom_db,
+        id, name, status, url_count, speed, amplify_db, target_lufs, quality, audio_safety_mode, headroom_db,
         limiter_enabled, upload_enabled, credential_id, credential_name, asset_name_pattern, created_at, updated_at
       )
-      SELECT id, name, status, url_count, speed, amplify_db, quality, audio_safety_mode, headroom_db,
+      SELECT id, name, status, url_count, speed, amplify_db, COALESCE(target_lufs, -14), quality, audio_safety_mode, headroom_db,
         limiter_enabled, upload_enabled, credential_id, credential_name, asset_name_pattern, created_at, updated_at
       FROM batches;
 
       INSERT INTO jobs_new (
-        id, batch_id, source_url, source_platform, title, status, progress, speed, amplify_db, quality,
+        id, batch_id, source_url, source_platform, title, status, progress, speed, amplify_db, target_lufs, quality,
         audio_safety_mode, headroom_db, limiter_enabled, upload_enabled, credential_id, credential_name,
         asset_name_pattern, output_path, output_duration_sec, output_size_bytes, output_peak_db, output_mean_db,
         output_sample_rate, output_channels, attempt_count, max_attempts, asset_id, roblox_operation_id,
@@ -415,7 +425,7 @@ function ensureAdvancedAudioTableMigrations(sqlite: SqliteDatabase) {
         roblox_moderation_state, roblox_moderation_checked_at, roblox_moderation_raw,
         roblox_moderation_attempt_count, error, created_at, updated_at
       )
-      SELECT id, batch_id, source_url, source_platform, title, status, progress, speed, amplify_db, quality,
+      SELECT id, batch_id, source_url, source_platform, title, status, progress, speed, amplify_db, COALESCE(target_lufs, -14), quality,
         audio_safety_mode, headroom_db, limiter_enabled, upload_enabled, credential_id, credential_name,
         asset_name_pattern, output_path, output_duration_sec, output_size_bytes, output_peak_db, output_mean_db,
         output_sample_rate, output_channels, attempt_count, max_attempts, asset_id, roblox_operation_id,
@@ -425,20 +435,20 @@ function ensureAdvancedAudioTableMigrations(sqlite: SqliteDatabase) {
       FROM jobs;
 
       INSERT INTO settings_new (
-        id, default_speed, default_amplify_db, default_quality, default_audio_safety_mode, default_headroom_db,
+        id, default_speed, default_amplify_db, default_target_lufs, default_quality, default_audio_safety_mode, default_headroom_db,
         default_limiter_enabled, default_upload_enabled, default_credential_id, default_asset_name_pattern,
         cleanup_target, cleanup_retention, max_concurrent_jobs, retry_count, created_at, updated_at
       )
-      SELECT id, default_speed, default_amplify_db, default_quality, default_audio_safety_mode, default_headroom_db,
+      SELECT id, default_speed, default_amplify_db, COALESCE(default_target_lufs, -14), default_quality, default_audio_safety_mode, default_headroom_db,
         default_limiter_enabled, default_upload_enabled, default_credential_id, default_asset_name_pattern,
         cleanup_target, cleanup_retention, max_concurrent_jobs, retry_count, created_at, updated_at
       FROM settings;
 
       INSERT INTO audio_presets_new (
-        id, name, description, speed, amplify_db, quality, audio_safety_mode, headroom_db,
+        id, name, description, speed, amplify_db, target_lufs, quality, audio_safety_mode, headroom_db,
         limiter_enabled, upload_enabled, credential_id, asset_name_pattern, is_default, created_at, updated_at
       )
-      SELECT id, name, description, speed, amplify_db, quality, audio_safety_mode, headroom_db,
+      SELECT id, name, description, speed, amplify_db, COALESCE(target_lufs, -14), quality, audio_safety_mode, headroom_db,
         limiter_enabled, upload_enabled, credential_id, asset_name_pattern, is_default, created_at, updated_at
       FROM audio_presets;
 
@@ -478,8 +488,10 @@ function ensureMigrations(sqlite: SqliteDatabase) {
   ensureAudioPresetMigrations(sqlite);
   ensureColumn(sqlite, "batches", "audio_safety_mode", "audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe'");
   ensureColumn(sqlite, "batches", "headroom_db", "headroom_db REAL NOT NULL DEFAULT -3");
+  ensureColumn(sqlite, "batches", "target_lufs", "target_lufs REAL NOT NULL DEFAULT -14");
   ensureColumn(sqlite, "jobs", "audio_safety_mode", "audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe'");
   ensureColumn(sqlite, "jobs", "headroom_db", "headroom_db REAL NOT NULL DEFAULT -3");
+  ensureColumn(sqlite, "jobs", "target_lufs", "target_lufs REAL NOT NULL DEFAULT -14");
   ensureColumn(sqlite, "jobs", "output_duration_sec", "output_duration_sec REAL");
   ensureColumn(sqlite, "jobs", "output_size_bytes", "output_size_bytes INTEGER");
   ensureColumn(sqlite, "jobs", "output_peak_db", "output_peak_db REAL");
@@ -500,8 +512,10 @@ function ensureMigrations(sqlite: SqliteDatabase) {
   ensureSettingsMigrations(sqlite);
   ensureColumn(sqlite, "settings", "default_audio_safety_mode", "default_audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe'");
   ensureColumn(sqlite, "settings", "default_headroom_db", "default_headroom_db REAL NOT NULL DEFAULT -3");
+  ensureColumn(sqlite, "settings", "default_target_lufs", "default_target_lufs REAL NOT NULL DEFAULT -14");
   ensureColumn(sqlite, "audio_presets", "audio_safety_mode", "audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe'");
   ensureColumn(sqlite, "audio_presets", "headroom_db", "headroom_db REAL NOT NULL DEFAULT -3");
+  ensureColumn(sqlite, "audio_presets", "target_lufs", "target_lufs REAL NOT NULL DEFAULT -14");
   ensureAdvancedAudioTableMigrations(sqlite);
 }
 

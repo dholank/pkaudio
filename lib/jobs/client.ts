@@ -15,6 +15,7 @@ export async function createBatchRequest(input: {
   urls: string[];
   speed: number;
   amplifyDb: number;
+  targetLufs: number;
   quality: AudioQuality;
   audioSafetyMode: AudioSafetyMode;
   headroomDb: number;

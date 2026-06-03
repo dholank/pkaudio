@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AUDIO_SAFETY_MODE_LABELS, formatHeadroomDb } from "@/lib/audio/options";
+import { AUDIO_SAFETY_MODE_LABELS, formatHeadroomDb, formatTargetLufs } from "@/lib/audio/options";
 import type { CredentialView } from "@/lib/credentials/types";
 import { deleteJobRequest, fetchJobLogs, retryJobRequest } from "@/lib/jobs/client";
 import type { JobLogView, JobView } from "@/lib/jobs/types";
@@ -316,8 +316,8 @@ export function HistoryClient({ jobs, credentials }: { jobs: JobView[]; credenti
                   </TableCell>
                   <TableCell><Badge variant="secondary">{job.sourcePlatform}</Badge></TableCell>
                   <TableCell className="text-zinc-400">
-                    <div>{formatSpeed(job.speed)} • {formatDb(job.amplifyDb)} • {job.quality.toUpperCase()}</div>
-                    <div className="mt-1 text-xs text-zinc-600">{AUDIO_SAFETY_MODE_LABELS[job.audioSafetyMode]} • {job.limiterEnabled ? formatHeadroomDb(job.headroomDb) : "Limiter OFF"}</div>
+                    <div>{formatSpeed(job.speed)} • gain {formatDb(job.amplifyDb)} • {job.quality.toUpperCase()}</div>
+                    <div className="mt-1 text-xs text-zinc-600">{AUDIO_SAFETY_MODE_LABELS[job.audioSafetyMode]} • {job.limiterEnabled ? `${formatTargetLufs(job.targetLufs)} → peak ≤ ${formatHeadroomDb(job.headroomDb)}` : "Limiter OFF"}</div>
                     <div className="mt-1 text-xs text-zinc-600">Attempt {job.attemptCount}/{job.maxAttempts}</div>
                   </TableCell>
                   <TableCell><StatusBadge status={job.status} /></TableCell>

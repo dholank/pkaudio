@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { AudioPreviewDiagnostics } from "@/components/queue/audio-preview-diagnostics";
 import { StatusBadge } from "@/components/queue/status-badge";
-import { AUDIO_SAFETY_MODE_LABELS, formatHeadroomDb } from "@/lib/audio/options";
+import { AUDIO_SAFETY_MODE_LABELS, formatHeadroomDb, formatTargetLufs } from "@/lib/audio/options";
 import { formatDb, formatSpeed } from "@/lib/utils";
 import type { JobView } from "@/lib/jobs/types";
 
@@ -73,7 +73,7 @@ export function JobCard({
         <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
           <span>{formatSpeed(job.speed)}</span>
           <span>•</span>
-          <span>{formatDb(job.amplifyDb)}</span>
+          <span>gain {formatDb(job.amplifyDb)}</span>
           <span>•</span>
           <span>{job.quality.toUpperCase()}</span>
           <span>•</span>
@@ -81,7 +81,7 @@ export function JobCard({
           <span>•</span>
           <span>Attempt {job.attemptCount}/{job.maxAttempts}</span>
           <span>•</span>
-          <span>{job.limiterEnabled ? `Limiter ${formatHeadroomDb(job.headroomDb)}` : "Limiter OFF"}</span>
+          <span>{job.limiterEnabled ? `${formatTargetLufs(job.targetLufs)} → peak ≤ ${formatHeadroomDb(job.headroomDb)}` : "Limiter OFF"}</span>
           {job.credentialName ? (
             <>
               <span>•</span>

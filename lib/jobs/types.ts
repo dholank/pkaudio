@@ -25,6 +25,7 @@ export type BatchView = {
   urlCount: number;
   speed: number;
   amplifyDb: number;
+  targetLufs: number;
   quality: AudioQuality;
   audioSafetyMode: AudioSafetyMode;
   headroomDb: number;
@@ -47,6 +48,7 @@ export type JobView = {
   progress: number;
   speed: number;
   amplifyDb: number;
+  targetLufs: number;
   quality: AudioQuality;
   audioSafetyMode: AudioSafetyMode;
   headroomDb: number;

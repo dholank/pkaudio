@@ -3,13 +3,14 @@
 import { Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AUDIO_SAFETY_MODE_LABELS, formatHeadroomDb, type AudioQuality, type AudioSafetyMode } from "@/lib/audio/options";
+import { AUDIO_SAFETY_MODE_LABELS, formatHeadroomDb, formatTargetLufs, type AudioQuality, type AudioSafetyMode } from "@/lib/audio/options";
 import { formatDb, formatSpeed } from "@/lib/utils";
 
 export function BatchSummaryCard({
   validUrls,
   speed,
   amplifyDb,
+  targetLufs,
   quality,
   audioSafetyMode,
   headroomDb,
@@ -22,6 +23,7 @@ export function BatchSummaryCard({
   validUrls: number;
   speed: number;
   amplifyDb: number;
+  targetLufs: number;
   quality: AudioQuality;
   audioSafetyMode: AudioSafetyMode;
   headroomDb: number;
@@ -37,7 +39,7 @@ export function BatchSummaryCard({
         <div>
           <p className="text-sm font-medium text-white">Batch summary</p>
           <p className="mt-1 text-sm text-zinc-400">
-            {validUrls} URLs • {formatSpeed(speed)} • {formatDb(amplifyDb)} • OGG {quality.toUpperCase()} • {AUDIO_SAFETY_MODE_LABELS[audioSafetyMode]} • {limiterEnabled ? `Limiter ${formatHeadroomDb(headroomDb)}` : "Limiter OFF"} • {uploadEnabled ? "Auto upload" : "Convert only"}
+            {validUrls} URLs • {formatSpeed(speed)} • gain {formatDb(amplifyDb)} • OGG {quality.toUpperCase()} • {AUDIO_SAFETY_MODE_LABELS[audioSafetyMode]} • {limiterEnabled ? `${formatTargetLufs(targetLufs)} → peak ≤ ${formatHeadroomDb(headroomDb)}` : "Limiter OFF"} • {uploadEnabled ? "Auto upload" : "Convert only"}
           </p>
         </div>
         <Button size="lg" disabled={!canStart || isStarting} onClick={onStart}>
