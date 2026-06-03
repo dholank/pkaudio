@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS = {
   defaultLimiterEnabled: true,
   defaultUploadEnabled: true,
   defaultCredentialId: null as string | null,
-  defaultAssetNamePattern: "{title} - PKAudio",
+  defaultAssetNamePattern: "{title}",
   cleanupTarget: "temp" as const,
   cleanupRetention: "all" as const,
   maxConcurrentJobs: 1,

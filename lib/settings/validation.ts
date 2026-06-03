@@ -10,7 +10,7 @@ export const settingsPatchSchema = z.object({
   defaultLimiterEnabled: z.boolean().optional(),
   defaultUploadEnabled: z.boolean().optional(),
   defaultCredentialId: z.string().trim().min(1).nullable().optional(),
-  defaultAssetNamePattern: z.string().trim().min(1).max(160).optional(),
+  defaultAssetNamePattern: z.string().trim().min(1).max(120).optional(),
   cleanupTarget: z.enum(["temp", "outputs", "all"]).optional(),
   cleanupRetention: z.enum(["all", "24h", "7d"]).optional(),
   maxConcurrentJobs: z.number().int().min(1).max(4).optional(),

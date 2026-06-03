@@ -415,7 +415,7 @@ async function pollOperationWithCredential(reference: string, apiKey: string, on
 export function renderAssetName(pattern: string, values: { title: string | null; jobId: string; platform: string }) {
   const fallback = values.title ?? `PKAudio ${values.jobId.slice(0, 8)}`;
   return sanitizeDisplayName(
-    (pattern || "{title} - PKAudio")
+    (pattern || "{title}")
       .replaceAll("{title}", fallback)
       .replaceAll("{id}", values.jobId.slice(0, 8))
       .replaceAll("{platform}", values.platform),

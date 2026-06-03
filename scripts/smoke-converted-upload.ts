@@ -66,7 +66,7 @@ async function main() {
       uploadEnabled: true,
       credentialId: "smoke-credential",
       credentialName: "Smoke Credential",
-      assetNamePattern: "{title} - PKAudio",
+      assetNamePattern: "{title}",
       createdAt: now,
       updatedAt: now,
     })
@@ -84,7 +84,7 @@ async function main() {
     uploadEnabled: true,
     credentialId: "smoke-credential",
     credentialName: "Smoke Credential",
-    assetNamePattern: "{title} - PKAudio",
+    assetNamePattern: "{title}",
     outputDurationSec: 12,
     outputSizeBytes: 256_000,
     outputPeakDb: -3.1,

@@ -14,9 +14,11 @@ export function RobloxUploadCard({
   credentials,
   selectedCredential,
   uploadEnabled,
+  assetNamePattern,
   loading = false,
   onCredentialChange,
   onUploadEnabledChange,
+  onAssetNamePatternChange,
 }: {
   credentials: CredentialView[];
   selectedCredential: string;
@@ -58,8 +60,18 @@ export function RobloxUploadCard({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Roblox metadata</Label>
-          <Input value="Title: clean audio title only • Description: Uploaded By PK Audio" disabled />
+          <Label htmlFor="roblox-title-pattern">Roblox title pattern</Label>
+          <Input
+            id="roblox-title-pattern"
+            value={assetNamePattern}
+            onChange={(event) => onAssetNamePatternChange(event.target.value)}
+            placeholder="{title}"
+            maxLength={120}
+            disabled={loading}
+          />
+          <p className="text-xs leading-5 text-zinc-500">
+            Tokens: <span className="font-mono text-zinc-300">{"{title}"}</span>, <span className="font-mono text-zinc-300">{"{id}"}</span>, <span className="font-mono text-zinc-300">{"{platform}"}</span>. Final Roblox title is cleaned and capped to 50 chars.
+          </p>
         </div>
         <Button variant="outline" className="lg:mb-0" asChild>
           <Link href="/credentials">Manage Keys</Link>
@@ -67,7 +79,7 @@ export function RobloxUploadCard({
         <div className="lg:col-span-3 rounded-xl border border-emerald-500/15 bg-emerald-500/8 px-3 py-3 text-xs leading-5 text-emerald-100/85">
           <div className="flex gap-2">
             <ShieldCheck className="mt-0.5 size-4 shrink-0" />
-            <span>Saved keys are encrypted locally with AES-256-GCM. The worker decrypts the selected key only in memory while uploading to Roblox.</span>
+            <span>Saved keys are encrypted locally with AES-256-GCM. The worker decrypts the selected key only in memory while uploading to Roblox. Description stays fixed as “Uploaded By PK Audio”.</span>
           </div>
         </div>
       </CardContent>

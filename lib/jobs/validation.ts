@@ -11,7 +11,7 @@ export const createBatchSchema = z.object({
   limiterEnabled: z.boolean(),
   uploadEnabled: z.boolean(),
   credentialId: z.string().trim().min(1).nullable().optional(),
-  assetNamePattern: z.string().trim().min(1).max(160),
+  assetNamePattern: z.string().trim().min(1).max(120),
 });
 
 export const listJobsQuerySchema = z.object({

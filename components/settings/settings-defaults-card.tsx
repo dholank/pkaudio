@@ -218,12 +218,16 @@ export function SettingsDefaultsCard({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Default asset name pattern</Label>
+              <Label>Default Roblox title pattern</Label>
               <Input
                 value={settings.defaultAssetNamePattern}
                 onChange={(event) => patchLocal({ defaultAssetNamePattern: event.target.value })}
-                placeholder="{title} - PKAudio"
+                placeholder="{title}"
+                maxLength={120}
               />
+              <p className="text-xs leading-5 text-zinc-500">
+                Tokens: <span className="font-mono text-zinc-300">{"{title}"}</span>, <span className="font-mono text-zinc-300">{"{id}"}</span>, <span className="font-mono text-zinc-300">{"{platform}"}</span>. Roblox receives a cleaned max-50-char title.
+              </p>
             </div>
           </div>
         </section>

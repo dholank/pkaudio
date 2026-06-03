@@ -264,8 +264,11 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
               <Input type="number" min={MIN_HEADROOM_DB} max={MAX_HEADROOM_DB} step={0.5} value={form.headroomDb} disabled={!form.limiterEnabled} onChange={(event) => patchForm({ headroomDb: toNumber(event.target.value, form.headroomDb), audioSafetyMode: "custom" })} />
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label>Asset name pattern</Label>
-              <Input value={form.assetNamePattern} onChange={(event) => patchForm({ assetNamePattern: event.target.value })} />
+              <Label>Roblox title pattern</Label>
+              <Input value={form.assetNamePattern} maxLength={120} placeholder="{title}" onChange={(event) => patchForm({ assetNamePattern: event.target.value })} />
+              <p className="text-xs leading-5 text-zinc-500">
+                Tokens: <span className="font-mono text-zinc-300">{"{title}"}</span>, <span className="font-mono text-zinc-300">{"{id}"}</span>, <span className="font-mono text-zinc-300">{"{platform}"}</span>. Roblox receives a cleaned max-50-char title.
+              </p>
             </div>
             <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] p-3">
               <div><Label>Limiter</Label><p className="mt-1 text-xs text-zinc-500">Keep configured output headroom.</p></div>

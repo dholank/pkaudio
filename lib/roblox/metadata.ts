@@ -2,8 +2,28 @@ const FALLBACK_TITLE = "PKAudio Upload";
 export const ROBLOX_AUDIO_DESCRIPTION = "Uploaded By PK Audio";
 
 const DASH_SPLIT_RE = /\s+[-–—|:]\s+/;
-const BRACKET_NOISE_RE = /[([{][^\])}]*?(?:official\s*(?:music\s*)?(?:video|audio)|lyrics?|lyric\s*video|visuali[sz]er|mv|music\s*video|audio\s*only|hd|4k|8k)[^\])}]*?[\])}]/gi;
-const TRAILING_NOISE_RE = /(?:\s+[-–—|:]\s*)?(?:official\s*(?:music\s*)?(?:video|audio)|lyrics?|lyric\s*video|visuali[sz]er|mv|music\s*video|audio\s*only|hd|4k|8k|topic)\s*$/gi;
+const TITLE_NOISE_PATTERN = [
+  "official\\s*(?:music\\s*)?(?:video|audio)",
+  "lyric\\s*video",
+  "lyrics?(?:\\s+(?:translation|translated|terjemahan(?:\\s+(?:indonesia|indo))?|indonesia|indo))?",
+  "lirik(?:\\s+lagu)?(?:\\s+terjemahan(?:\\s+(?:indonesia|indo))?)?",
+  "terjemahan(?:\\s+(?:indonesia|indo))?",
+  "subtitles?(?:\\s+(?:indonesia|indo))?",
+  "sub\\s*indo",
+  "indo\\s*sub",
+  "visuali[sz]er",
+  "music\\s*video",
+  "audio\\s*only",
+  "mv",
+  "hd",
+  "4k",
+  "8k",
+  "topic",
+].join("|");
+const BRACKET_NOISE_RE = new RegExp(`[([{][^\\])}]*?(?:${TITLE_NOISE_PATTERN})[^\\])}]*?[\\])}]`, "gi");
+const TRAILING_NOISE_RE = new RegExp(`(?:\\s+[-–—|:]\\s*|\\s+)?(?:${TITLE_NOISE_PATTERN})\\s*$`, "gi");
+const LEADING_NOISE_RE = new RegExp(`^(?:${TITLE_NOISE_PATTERN})(?:\\s+[-–—|:]\\s*|\\s+)`, "gi");
+const NOISE_ONLY_RE = new RegExp(`^(?:${TITLE_NOISE_PATTERN})(?:\\s*(?:[-–—|:/,])\\s*|\\s+(?:${TITLE_NOISE_PATTERN}))*$`, "i");
 const FEATURE_RE = /\s+(?:ft\.?|feat\.?|featuring)\s+.+$/i;
 const ARTIST_CHANNEL_RE = /\s+-\s+topic$/i;
 
@@ -40,10 +60,13 @@ function stripEmptyBrackets(value: string) {
 function removeKnownNoise(value: string) {
   let current = value;
   for (let i = 0; i < 4; i += 1) {
+    if (NOISE_ONLY_RE.test(current)) return "";
+
     const next = stripEmptyBrackets(
       current
         .replace(ARTIST_CHANNEL_RE, "")
         .replace(BRACKET_NOISE_RE, " ")
+        .replace(LEADING_NOISE_RE, "")
         .replace(TRAILING_NOISE_RE, "")
         .replace(/\s+/g, " ")
         .trim(),
@@ -51,7 +74,7 @@ function removeKnownNoise(value: string) {
     if (next === current) break;
     current = next;
   }
-  return current;
+  return NOISE_ONLY_RE.test(current) ? "" : current;
 }
 
 function maybeTakeSongSide(value: string) {
@@ -63,7 +86,7 @@ function maybeTakeSongSide(value: string) {
 
   // Most YouTube/SoundCloud music titles are "Artist - Song". Prefer the right side.
   // If the right side is only a known channel suffix/noise, keep the left side.
-  if (/^(topic|lyrics?|official|audio)$/i.test(last)) return first;
+  if (NOISE_ONLY_RE.test(last)) return first;
   return last;
 }
 
