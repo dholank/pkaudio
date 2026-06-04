@@ -19,6 +19,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ActionIconButton } from "@/components/shared/action-icon-button";
+import { JobAudioMeta, JobOutputDiagnostics } from "@/components/jobs/job-audio-meta";
+import { JobTitleBlock } from "@/components/jobs/job-title-block";
 import { AUDIO_SAFETY_MODE_LABELS, formatHeadroomDb, formatTargetLufs } from "@/lib/audio/options";
 import type { CredentialView } from "@/lib/credentials/types";
 import { deleteJobRequest, fetchJobLogs, retryJobRequest } from "@/lib/jobs/client";
@@ -369,30 +372,17 @@ export function HistoryClient({ jobs, credentials }: { jobs: JobView[]; credenti
 
                     {/* Title + Status */}
                     <TableCell>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <StatusBadge status={job.status} />
-                        <Badge variant="secondary" className="text-[10px]">{job.sourcePlatform}</Badge>
-                      </div>
-                      <div className="mt-1 max-w-[320px] truncate font-medium text-white">
-                        {job.title ?? "Queued source"}
-                      </div>
-                      <div className="max-w-[320px] truncate font-mono text-xs text-zinc-600">
-                        {job.sourceUrl}
-                      </div>
-                      <div className="font-mono text-[11px] text-zinc-700">{job.id.slice(0, 8)}</div>
+                      <JobTitleBlock job={job} compact={false} showId />
                     </TableCell>
 
                     {/* Audio (compact) */}
                     <TableCell>
-                      <AudioMetaCompact job={job} />
-                      {job.outputDurationSec !== null || job.outputSizeBytes !== null ? (
-                        <div className="mt-1 text-[11px] text-zinc-600">
-                          {job.outputDurationSec !== null ? `${formatDuration(job.outputDurationSec)}` : ""}
-                          {job.outputDurationSec !== null && job.outputSizeBytes !== null ? " · " : ""}
-                          {job.outputSizeBytes !== null ? formatBytes(job.outputSizeBytes) : ""}
-                          {job.outputPeakDb !== null ? ` · ${job.outputPeakDb.toFixed(1)} dBFS` : ""}
-                        </div>
-                      ) : null}
+                      <JobAudioMeta job={job} compact />
+                      <JobOutputDiagnostics
+                        durationSec={job.outputDurationSec}
+                        sizeBytes={job.outputSizeBytes}
+                        peakDb={job.outputPeakDb}
+                      />
                       {job.outputPath ? (
                         <button
                           className="mt-1 inline-flex items-center gap-1 text-[11px] text-cyan-400/70 hover:text-cyan-300"
@@ -437,62 +427,21 @@ export function HistoryClient({ jobs, credentials }: { jobs: JobView[]; credenti
                     {/* Actions */}
                     <TableCell>
                       <div className="flex justify-end gap-1.5">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-8 w-8 p-0 sm:w-auto sm:px-2" onClick={() => void handleLogs(job)}>
-                              <Terminal className="size-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="text-xs"><p>Logs</p></TooltipContent>
-                        </Tooltip>
+                        <ActionIconButton icon={Terminal} label="Logs" onClick={() => void handleLogs(job)} />
 
                         {job.assetId ? (
                           <>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 w-8 p-0 sm:w-auto sm:px-2" onClick={() => void copyText(job.assetId!, "Asset ID")}>
-                                  <Copy className="size-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="text-xs"><p>Copy ID</p></TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 w-8 p-0 sm:w-auto sm:px-2" asChild>
-                                  <a href={`https://create.roblox.com/store/asset/${job.assetId}`} target="_blank" rel="noreferrer">
-                                    <ExternalLink className="size-4" />
-                                  </a>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="text-xs"><p>Open</p></TooltipContent>
-                            </Tooltip>
+                            <ActionIconButton icon={Copy} label="Copy ID" onClick={() => void copyText(job.assetId!, "Asset ID")} />
+                            <ActionIconButton icon={ExternalLink} label="Open in Roblox" href={`https://create.roblox.com/store/asset/${job.assetId}`} />
                           </>
                         ) : null}
 
                         {job.outputPath ? (
-                          <>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 w-8 p-0 sm:w-auto sm:px-2" asChild>
-                                  <a href={outputDownloadHref(job.outputPath)}>
-                                    <Download className="size-4" />
-                                  </a>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="text-xs"><p>Download OGG</p></TooltipContent>
-                            </Tooltip>
-                          </>
+                          <ActionIconButton icon={Download} label="Download OGG" href={outputDownloadHref(job.outputPath)} />
                         ) : null}
 
                         {job.status === "failed" || job.status === "cancelled" ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button variant="outline" size="sm" className="h-8 w-8 p-0 sm:w-auto sm:px-2" onClick={() => void handleRetry(job)}>
-                                <RotateCcw className="size-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="text-xs"><p>Retry</p></TooltipContent>
-                          </Tooltip>
+                          <ActionIconButton icon={RotateCcw} label="Retry" onClick={() => void handleRetry(job)} />
                         ) : null}
                       </div>
                     </TableCell>

@@ -3,15 +3,12 @@
 import {
   BarChart3, Copy, Download, ExternalLink, FileAudio2, Gauge, KeyRound, Music, RotateCcw, ShieldCheck, Terminal, Trash2, Volume2, XCircle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ActionIconButton } from "@/components/shared/action-icon-button";
+import { JobAudioMeta, JobOutputDiagnostics } from "@/components/jobs/job-audio-meta";
+import { JobTitleBlock } from "@/components/jobs/job-title-block";
 import { AudioPreviewDiagnostics } from "@/components/queue/audio-preview-diagnostics";
 import { StatusBadge } from "@/components/queue/status-badge";
 import {
@@ -33,66 +30,6 @@ async function copyText(value: string) {
 }
 
 const deletableStatuses = new Set(["queued", "converted", "done", "failed", "cancelled"]);
-
-function IconBtn({
-  icon: Icon,
-  label,
-  onClick,
-  variant = "outline",
-  asChild,
-  className,
-  children,
-}: {
-  icon: typeof Copy;
-  label: string;
-  onClick?: () => void;
-  variant?: "outline" | "ghost";
-  asChild?: boolean;
-  className?: string;
-  children?: React.ReactNode;
-}) {
-  const Wrapper = (
-    <Button
-      variant={variant}
-      size="sm"
-      onClick={onClick}
-      asChild={asChild}
-      className={`h-8 w-8 p-0 sm:w-auto sm:px-2.5 ${className ?? ""}`}
-    >
-      {asChild ? children : <Icon className="size-4" />}
-    </Button>
-  );
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{Wrapper}</TooltipTrigger>
-      <TooltipContent side="top" className="text-xs"><p>{label}</p></TooltipContent>
-    </Tooltip>
-  );
-}
-
-function CompactMeta({ job }: { job: JobView }) {
-  return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-500">
-      <span className="inline-flex items-center gap-1">
-        <BarChart3 className="size-3 text-zinc-600" />
-        {formatSpeed(job.speed)}
-      </span>
-      <span className="inline-flex items-center gap-1">
-        <Volume2 className="size-3 text-zinc-600" />
-        {formatDb(job.amplifyDb)}
-      </span>
-      <span className="inline-flex items-center gap-1">
-        <Music className="size-3 text-zinc-600" />
-        {job.quality.toUpperCase()}
-      </span>
-      <span className="inline-flex items-center gap-1">
-        {job.limiterEnabled ? <Gauge className="size-3 text-emerald-500" /> : <span className="text-zinc-600"><Volume2 className="size-3" /></span>}
-        {job.limiterEnabled ? `${formatTargetLufs(job.targetLufs)} · ${formatHeadroomDb(job.headroomDb)}` : "Limiter off"}
-      </span>
-    </div>
-  );
-}
 
 function FullMeta({ job }: { job: JobView }) {
   return (
@@ -152,31 +89,21 @@ export function JobCard({
     <TooltipProvider>
       <Card className="transition-colors hover:border-white/[0.13]">
         <CardContent className={compact ? "p-3.5" : "p-5"}>
-          {/* Header: status + platform + id */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusBadge status={job.status} />
-              <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-xs text-zinc-500">
-                {job.sourcePlatform}
-              </span>
-              <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[11px] text-zinc-600">
-                {job.id.slice(0, 8)}
-              </span>
-            </div>
-            <div className="font-mono text-sm text-zinc-300">{job.progress}%</div>
-          </div>
+          {/* Title block */}
+          {compact ? (
+            <JobTitleBlock job={job} compact showId />
+          ) : (
+            <JobTitleBlock job={job} compact={false} showId />
+          )}
+          {compact ? (
+            <div className="mt-1 text-right font-mono text-xs text-zinc-500">{job.progress}%</div>
+          ) : null}
 
-          {/* Title */}
-          <h3 className={`mt-2 break-words font-semibold text-white ${compact ? "text-sm" : "text-base md:truncate"}`}>
-            {job.title ?? "Queued source"}
-          </h3>
-          <p className={`break-all font-mono text-zinc-600 ${compact ? "text-[11px] line-clamp-1" : "mt-1 text-xs md:truncate"}`}>
-            {job.sourceUrl}
-          </p>
+          {/* Non-compact progress inline */}
 
           {/* Metadata */}
           <div className="mt-2">
-            {compact ? <CompactMeta job={job} /> : <FullMeta job={job} />}
+            {compact ? <JobAudioMeta job={job} compact /> : <FullMeta job={job} />}
           </div>
 
           {/* Error */}
@@ -224,43 +151,36 @@ export function JobCard({
           {/* Action buttons */}
           <div className={`flex flex-wrap items-center gap-1.5 ${compact ? "mt-2" : "mt-4"}`}>
             {/* Core actions */}
-            <IconBtn icon={Terminal} label="Logs" onClick={() => onLogs?.(job)} />
+            <ActionIconButton icon={Terminal} label="Logs" onClick={() => onLogs?.(job)} />
 
             {isFailed || job.status === "cancelled" ? (
-              <IconBtn icon={RotateCcw} label="Retry" onClick={() => onRetry?.(job)} />
+              <ActionIconButton icon={RotateCcw} label="Retry" onClick={() => onRetry?.(job)} />
             ) : null}
 
-            {/* Roblox actions */}
             {job.robloxOperationId || job.robloxOperationPath ? (
-              <IconBtn icon={ShieldCheck} label="Roblox status" onClick={() => onAuditRoblox?.(job)} />
+              <ActionIconButton icon={ShieldCheck} label="Roblox status" onClick={() => onAuditRoblox?.(job)} />
             ) : null}
 
             {job.assetId ? (
-              <IconBtn icon={ShieldCheck} label="Moderation check" onClick={() => onCheckRobloxModeration?.(job)} />
+              <ActionIconButton icon={ShieldCheck} label="Moderation check" onClick={() => onCheckRobloxModeration?.(job)} />
             ) : null}
 
-            {/* Done actions */}
             {isDone && job.assetId ? (
               <>
-                <IconBtn icon={Copy} label="Copy asset ID" onClick={() => void copyText(job.assetId!)} />
-                <IconBtn icon={ExternalLink} label="Open in Roblox" asChild>
-                  <a href={`https://create.roblox.com/store/asset/${job.assetId}`} target="_blank" rel="noreferrer"><ExternalLink className="size-4" /></a>
-                </IconBtn>
+                <ActionIconButton icon={Copy} label="Copy asset ID" onClick={() => void copyText(job.assetId!)} />
+                <ActionIconButton icon={ExternalLink} label="Open in Roblox" href={`https://create.roblox.com/store/asset/${job.assetId}`} />
               </>
             ) : null}
 
             {job.outputPath ? (
-              <IconBtn icon={Download} label="Download OGG" asChild>
-                <a href={outputDownloadHref(job.outputPath)}><Download className="size-4" /></a>
-              </IconBtn>
+              <ActionIconButton icon={Download} label="Download OGG" href={outputDownloadHref(job.outputPath)} />
             ) : null}
 
-            {/* Destructive */}
             {!isTerminal ? (
-              <IconBtn icon={XCircle} label="Cancel" variant="outline" className="border-rose-500/30 text-rose-300 hover:border-rose-400/50 hover:bg-rose-500/10" onClick={() => onCancel?.(job)} />
+              <ActionIconButton icon={XCircle} label="Cancel" tone="danger" onClick={() => onCancel?.(job)} />
             ) : null}
             {canDelete ? (
-              <IconBtn icon={Trash2} label="Delete" variant="outline" className="border-rose-500/30 text-rose-300 hover:border-rose-400/50 hover:bg-rose-500/10" onClick={() => onDelete?.(job)} />
+              <ActionIconButton icon={Trash2} label="Delete" tone="danger" onClick={() => onDelete?.(job)} />
             ) : null}
           </div>
         </CardContent>
