@@ -18,6 +18,7 @@ export const createBatchSchema = z.object({
 export const listJobsQuerySchema = z.object({
   status: z.string().optional(),
   batchId: z.string().optional(),
+  scope: z.enum(["all", "latest"]).optional(),
   q: z.string().optional(),
   platform: z.enum(["all", "youtube", "soundcloud", "unknown"]).optional(),
   credentialId: z.string().optional(),

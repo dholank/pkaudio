@@ -309,6 +309,18 @@ export async function listJobs(options: ListJobsQueryInput = {}) {
   return rows.map(toJobView);
 }
 
+export async function getLatestBatch() {
+  const row = getDb().select().from(batches).orderBy(desc(batches.createdAt)).limit(1).get();
+  return row ? toBatchView(row) : null;
+}
+
+export async function listLatestBatchJobs(options: ListJobsQueryInput = {}) {
+  const latestBatch = await getLatestBatch();
+  if (!latestBatch) return { batch: null, jobs: [] as JobView[] };
+  const latestJobs = await listJobs({ ...options, batchId: latestBatch.id });
+  return { batch: latestBatch, jobs: latestJobs };
+}
+
 export async function getJobById(id: string) {
   return getDb().select().from(jobs).where(eq(jobs.id, id)).get() ?? null;
 }

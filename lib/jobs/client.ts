@@ -33,13 +33,13 @@ export async function createBatchRequest(input: {
   );
 }
 
-export async function fetchJobs(params: { status?: string; q?: string; batchId?: string; platform?: string; credentialId?: string; upload?: string; moderation?: string; dateRange?: string; sort?: string; limit?: string } = {}) {
+export async function fetchJobs(params: { status?: string; q?: string; batchId?: string; scope?: string; platform?: string; credentialId?: string; upload?: string; moderation?: string; dateRange?: string; sort?: string; limit?: string } = {}) {
   const searchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value) searchParams.set(key, value);
   }
   const suffix = searchParams.toString() ? `?${searchParams.toString()}` : "";
-  return parseResponse<{ jobs: JobView[]; stats: Record<string, number> }>(
+  return parseResponse<{ jobs: JobView[]; batch?: BatchView | null; stats: Record<string, number> }>(
     await fetch(`/api/jobs${suffix}`, { cache: "no-store" }),
   );
 }
