@@ -191,7 +191,7 @@ export function QueueClient({
             </div>
             <h2 className="mt-3 text-xl font-semibold text-white">Latest Queue</h2>
             <p className="mt-1 max-w-3xl text-sm leading-6 text-zinc-400">
-              Queue sekarang fokus ke batch terbaru saja biar asset ID dan title audio terbaru gampang dicopy. Batch sebelumnya tetap aman di <Link href="/history" className="text-cyan-300 hover:text-cyan-200">History</Link>.
+              Queue shows only the latest batch so recent asset IDs and titles are easy to copy. Older batches remain safe in <Link href="/history" className="text-cyan-300 hover:text-cyan-200">History</Link>.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -219,7 +219,7 @@ export function QueueClient({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Filter className="size-4 text-cyan-300" /> Latest Queue Filter</CardTitle>
-          <CardDescription>Search dan filter ringan hanya untuk batch terbaru. Gunakan History untuk batch lama, export, dan pencarian lengkap.</CardDescription>
+          <CardDescription>Search and filter the latest batch. Use History for older batches, export, and full search.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid gap-3 md:grid-cols-[1fr_220px_auto]">

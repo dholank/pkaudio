@@ -36,13 +36,13 @@ export function CredentialFormCard({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><KeyRound className="size-4 text-cyan-300" /> Add Credential</CardTitle>
-        <CardDescription>Save a Roblox Open Cloud API key encrypted in local SQLite. Grant it Assets API permission for creator asset upload.</CardDescription>
+        <CardDescription>Save a Roblox Open Cloud API key. Needs Assets API permission for creator uploads.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="credential-name">Display name</Label>
-            <Input id="credential-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Contoh: PK Audio Group / Akun Utama" required />
+            <Input id="credential-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. My Group Key" required />
           </div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
             <div className="space-y-2">
@@ -61,15 +61,15 @@ export function CredentialFormCard({
                 id="creator-id"
                 value={creatorId}
                 onChange={(event) => setCreatorId(event.target.value)}
-                placeholder={creatorType === "group" ? "Contoh: 3308646504" : "Contoh: 123456789"}
+                placeholder={creatorType === "group" ? "e.g. 3308646504" : "e.g. 123456789"}
                 className="font-mono"
                 required
                 inputMode="numeric"
               />
               <p className="text-xs leading-5 text-zinc-500">
                 {creatorType === "group"
-                  ? "Isi angka dari URL group Roblox, bukan User ID akun lu."
-                  : "Isi Roblox User ID akun target upload."}
+                  ? "The group ID from your Roblox group URL, not your User ID."
+                  : "Your Roblox User ID for uploading audio."}
               </p>
             </div>
           </div>

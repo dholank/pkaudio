@@ -70,7 +70,7 @@ export function AppSidebar() {
           Local-first pipeline
         </div>
         <p className="mt-2 text-xs leading-5 text-zinc-500">
-          SQLite queue, encrypted credentials, FFmpeg conversion worker, serial Roblox upload, moderation, backup, dan QA doctor aktif.
+          SQLite queue, encrypted credentials, FFmpeg conversion, Roblox upload, moderation, backup, and QA doctor.
         </p>
       </div>
 

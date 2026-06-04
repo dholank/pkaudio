@@ -4,7 +4,7 @@ import { useState } from "react";
 import { KeyRound, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { CredentialFormCard } from "@/components/credentials/credential-form-card";
-import { CredentialTable } from "@/components/credentials/credential-table";
+import { CredentialCardList } from "@/components/credentials/credential-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -67,23 +67,23 @@ export function CredentialsManager({ initialCredentials }: { initialCredentials:
         <CardContent className="flex gap-3 p-5">
           <ShieldCheck className="mt-0.5 size-5 shrink-0 text-emerald-300" />
           <div>
-            <p className="font-medium text-emerald-100">Encrypted local storage active</p>
+            <p className="font-medium text-emerald-100">Encrypted local storage</p>
             <p className="mt-1 text-sm leading-6 text-emerald-100/75">
-              API keys are encrypted with AES-256-GCM before SQLite storage. Full saved keys are never returned to the UI and are decrypted only in worker memory during upload.
+              Keys encrypted with AES-256-GCM. Worker decrypts in memory only during upload.
             </p>
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
         <Card>
           <CardHeader>
             <CardTitle>Saved Credentials</CardTitle>
-            <CardDescription>Real local SQLite credentials. Table values never include plaintext API keys.</CardDescription>
+            <CardDescription>Saved encrypted credentials with test and delete actions.</CardDescription>
           </CardHeader>
           <CardContent>
             {credentials.length ? (
-              <CredentialTable credentials={credentials} onTest={handleTest} onDelete={handleDelete} busyId={busyId} />
+              <CredentialCardList credentials={credentials} onTest={handleTest} onDelete={handleDelete} busyId={busyId} />
             ) : (
               <EmptyState icon={KeyRound} title="No Roblox credentials" description="Add an encrypted API key to upload converted audio automatically to Roblox Creator assets." actionLabel="Use the form on the right" />
             )}
