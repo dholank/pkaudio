@@ -176,9 +176,9 @@ export function SettingsDefaultsCard({
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] p-3">
-              <div><Label>Limiter + normalize default</Label><p className="mt-1 text-xs text-zinc-500">Two-pass LUFS normalization plus final peak ceiling.</p></div>
-              <Switch checked={settings.defaultLimiterEnabled} onCheckedChange={(value) => patchLocal({ defaultLimiterEnabled: value, defaultAudioSafetyMode: "custom" })} />
+            <div className="flex min-w-0 items-start justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.035] p-3">
+              <div className="min-w-0"><Label className="leading-5">Limiter + normalize default</Label><p className="mt-1 text-xs text-zinc-500">Two-pass LUFS normalization plus final peak ceiling.</p></div>
+              <Switch className="mt-0.5 shrink-0" checked={settings.defaultLimiterEnabled} onCheckedChange={(value) => patchLocal({ defaultLimiterEnabled: value, defaultAudioSafetyMode: "custom" })} />
             </div>
             <div className="space-y-2 rounded-xl border border-white/10 bg-white/[0.035] p-3">
               <div className="flex items-center justify-between gap-3"><Label>Peak limit</Label><span className="font-mono text-xs text-zinc-300">{formatHeadroomDb(settings.defaultHeadroomDb)}</span></div>
@@ -216,9 +216,9 @@ export function SettingsDefaultsCard({
             <h3 className="text-sm font-medium text-white">Roblox upload defaults</h3>
             <p className="mt-1 text-xs text-zinc-500">Used by Convert when creating new batches. Roblox upload metadata uses a cleaned audio title and fixed description.</p>
           </div>
-          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] p-3">
-            <div><Label>Auto upload default</Label><p className="mt-1 text-xs text-zinc-500">Enable Roblox upload by default on Convert.</p></div>
-            <Switch checked={settings.defaultUploadEnabled} onCheckedChange={(value) => patchLocal({ defaultUploadEnabled: value })} />
+          <div className="flex min-w-0 items-start justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.035] p-3">
+            <div className="min-w-0"><Label className="leading-5">Auto upload default</Label><p className="mt-1 text-xs text-zinc-500">Enable Roblox upload by default on Convert.</p></div>
+            <Switch className="mt-0.5 shrink-0" checked={settings.defaultUploadEnabled} onCheckedChange={(value) => patchLocal({ defaultUploadEnabled: value })} />
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-2">

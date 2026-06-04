@@ -183,12 +183,12 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
 
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
-        <div>
+      <CardHeader className="flex flex-col gap-3 space-y-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="min-w-0">
           <CardTitle className="flex items-center gap-2"><Star className="size-4 text-cyan-300" /> Audio Presets</CardTitle>
           <CardDescription>Save reusable speed, gain trim, LUFS target, peak limit, quality, and upload combinations for Convert.</CardDescription>
         </div>
-        <Button variant="outline" size="sm" onClick={openCreate}><Plus /> New preset</Button>
+        <Button className="w-full sm:w-auto" variant="outline" size="sm" onClick={openCreate}><Plus /> New preset</Button>
       </CardHeader>
       <CardContent className="space-y-3">
         {presets.length ? presets.map((preset) => (
@@ -196,17 +196,17 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="font-semibold text-white">{preset.name}</h3>
+                  <h3 className="break-words font-semibold text-white">{preset.name}</h3>
                   {preset.isDefault ? <Badge variant="cyan">Default</Badge> : null}
                   <Badge variant="secondary">{preset.quality.toUpperCase()}</Badge>
                   <Badge variant="secondary">{AUDIO_SAFETY_MODE_LABELS[preset.audioSafetyMode]}</Badge>
                 </div>
                 {preset.description ? <p className="mt-1 text-sm text-zinc-500">{preset.description}</p> : null}
-                <p className="mt-2 text-xs text-zinc-500">
+                <p className="mt-2 break-words text-xs leading-5 text-zinc-500">
                   {preset.speed.toFixed(2)}x • gain {preset.amplifyDb > 0 ? "+" : ""}{preset.amplifyDb} dB • {preset.limiterEnabled ? `${formatTargetLufs(preset.targetLufs)} → peak ≤ ${formatHeadroomDb(preset.headroomDb)}` : "Limiter OFF"} • upload {preset.uploadEnabled ? "ON" : "OFF"}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 [&>button]:w-full sm:[&>button]:w-auto">
                 {!preset.isDefault ? <Button variant="ghost" size="sm" onClick={() => void makeDefault(preset)}><Star /> Default</Button> : null}
                 <Button variant="outline" size="sm" onClick={() => openEdit(preset)}>Edit</Button>
                 <Button variant="ghost" size="sm" className="text-rose-200 hover:text-rose-100" onClick={() => void deletePreset(preset)}><Trash2 /> Delete</Button>
@@ -221,12 +221,12 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
       </CardContent>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden p-0">
+          <DialogHeader className="shrink-0 border-b border-white/10 px-5 pb-3 pt-5 pr-10 sm:px-6 sm:pt-5">
             <DialogTitle>{form.id ? "Edit preset" : "Create preset"}</DialogTitle>
             <DialogDescription>Preset values can be applied from Convert and optionally used as the default.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid max-h-[calc(100dvh-13rem)] min-h-0 overscroll-contain overflow-y-auto px-5 py-4 sm:grid-cols-2 sm:gap-4 sm:px-6">
             <div className="space-y-2 sm:col-span-2">
               <Label>Name</Label>
               <Input value={form.name} onChange={(event) => patchForm({ name: event.target.value })} />
@@ -283,22 +283,22 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
                 Tokens: <span className="font-mono text-zinc-300">{"{title}"}</span>, <span className="font-mono text-zinc-300">{"{id}"}</span>, <span className="font-mono text-zinc-300">{"{platform}"}</span>. Roblox receives a cleaned max-50-char title.
               </p>
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] p-3">
-              <div><Label>Limiter + normalize</Label><p className="mt-1 text-xs text-zinc-500">Two-pass LUFS normalization plus peak ceiling.</p></div>
-              <Switch checked={form.limiterEnabled} onCheckedChange={(value) => patchForm({ limiterEnabled: value, audioSafetyMode: "custom" })} />
+            <div className="flex min-w-0 items-start justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.035] p-3">
+              <div className="min-w-0"><Label className="leading-5">Limiter + normalize</Label><p className="mt-1 text-xs text-zinc-500">Two-pass LUFS normalization plus peak ceiling.</p></div>
+              <Switch className="mt-0.5 shrink-0" checked={form.limiterEnabled} onCheckedChange={(value) => patchForm({ limiterEnabled: value, audioSafetyMode: "custom" })} />
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] p-3">
-              <div><Label>Auto upload</Label><p className="mt-1 text-xs text-zinc-500">Use selected Roblox credential.</p></div>
-              <Switch checked={form.uploadEnabled} onCheckedChange={(value) => patchForm({ uploadEnabled: value })} />
+            <div className="flex min-w-0 items-start justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.035] p-3">
+              <div className="min-w-0"><Label className="leading-5">Auto upload</Label><p className="mt-1 text-xs text-zinc-500">Use selected Roblox credential.</p></div>
+              <Switch className="mt-0.5 shrink-0" checked={form.uploadEnabled} onCheckedChange={(value) => patchForm({ uploadEnabled: value })} />
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-violet-500/20 bg-violet-500/10 p-3 sm:col-span-2">
-              <div><Label>Default preset</Label><p className="mt-1 text-xs text-zinc-400">Automatically selected when opening Convert.</p></div>
-              <Switch checked={form.isDefault} onCheckedChange={(value) => patchForm({ isDefault: value })} />
+            <div className="flex min-w-0 items-start justify-between gap-4 rounded-xl border border-violet-500/20 bg-violet-500/10 p-3 sm:col-span-2">
+              <div className="min-w-0"><Label className="leading-5">Default preset</Label><p className="mt-1 text-xs text-zinc-400">Automatically selected when opening Convert.</p></div>
+              <Switch className="mt-0.5 shrink-0" checked={form.isDefault} onCheckedChange={(value) => patchForm({ isDefault: value })} />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={() => void savePreset()} disabled={saving}><Save /> {saving ? "Saving..." : "Save preset"}</Button>
+          <DialogFooter className="shrink-0 gap-2 border-t border-white/10 bg-[#111114] px-5 py-3 shadow-[0_-12px_28px_rgba(0,0,0,0.22)] sm:px-6">
+            <Button className="w-full sm:w-auto" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button className="w-full sm:w-auto" onClick={() => void savePreset()} disabled={saving}><Save /> {saving ? "Saving..." : "Save preset"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

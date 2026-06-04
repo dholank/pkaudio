@@ -156,28 +156,28 @@ export function AudioSettingsCard({
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.035] p-3">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <Label className="flex items-center gap-2"><ShieldCheck className="size-4 text-emerald-300" /> Limiter + normalize</Label>
+        <div className="grid gap-3">
+          <div className="min-w-0 space-y-3 rounded-xl border border-white/10 bg-white/[0.035] p-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <Label className="flex flex-wrap items-center gap-2 leading-5"><ShieldCheck className="size-4 shrink-0 text-emerald-300" /> Limiter + normalize</Label>
                 <p className="mt-1 text-xs text-zinc-500">Enables two-pass LUFS normalization and final peak ceiling.</p>
               </div>
-              <Switch checked={limiterEnabled} onCheckedChange={onLimiterChange} />
+              <Switch className="mt-0.5 shrink-0" checked={limiterEnabled} onCheckedChange={onLimiterChange} />
             </div>
           </div>
-          <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.035] p-3">
-            <div className="flex items-center justify-between gap-4">
-              <Label>Target loudness</Label>
-              <Badge variant={targetLufs > -12 ? "warning" : "secondary"}>{formatTargetLufs(targetLufs)}</Badge>
+          <div className="min-w-0 space-y-3 rounded-xl border border-white/10 bg-white/[0.035] p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <Label className="leading-5">Target loudness</Label>
+              <Badge className="shrink-0" variant={targetLufs > -12 ? "warning" : "secondary"}>{formatTargetLufs(targetLufs)}</Badge>
             </div>
             <Slider min={MIN_TARGET_LUFS} max={MAX_TARGET_LUFS} step={0.5} value={[targetLufs]} onValueChange={([value]) => onTargetLufsChange(value)} disabled={!limiterEnabled} />
             <p className="text-xs text-zinc-500">Stabilizes perceived volume across songs.</p>
           </div>
-          <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.035] p-3">
-            <div className="flex items-center justify-between gap-4">
-              <Label>Peak limit</Label>
-              <Badge variant={headroomDb > -2 ? "warning" : "secondary"}>{formatHeadroomDb(headroomDb)}</Badge>
+          <div className="min-w-0 space-y-3 rounded-xl border border-white/10 bg-white/[0.035] p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <Label className="leading-5">Peak limit</Label>
+              <Badge className="shrink-0" variant={headroomDb > -2 ? "warning" : "secondary"}>{formatHeadroomDb(headroomDb)}</Badge>
             </div>
             <Slider min={MIN_HEADROOM_DB} max={MAX_HEADROOM_DB} step={0.5} value={[headroomDb]} onValueChange={([value]) => onHeadroomChange(value)} disabled={!limiterEnabled} />
             <p className="text-xs text-zinc-500">Max output peak / waveform amber threshold.</p>

@@ -60,8 +60,8 @@ export function JobCard({
                 {job.id.slice(0, 8)}
               </span>
             </div>
-            <h3 className="mt-3 truncate text-base font-semibold text-white">{job.title ?? "Queued source"}</h3>
-            <p className="mt-1 truncate font-mono text-xs text-zinc-600">{job.sourceUrl}</p>
+            <h3 className="mt-3 break-words text-base font-semibold text-white md:truncate">{job.title ?? "Queued source"}</h3>
+            <p className="mt-1 break-all font-mono text-xs text-zinc-600 md:truncate">{job.sourceUrl}</p>
           </div>
           <div className="font-mono text-sm text-zinc-300">{job.progress}%</div>
         </div>
@@ -70,7 +70,7 @@ export function JobCard({
           <Progress value={job.progress} />
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+        <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 text-xs leading-5 text-zinc-500">
           <span>{formatSpeed(job.speed)}</span>
           <span>•</span>
           <span>gain {formatDb(job.amplifyDb)}</span>
@@ -91,7 +91,7 @@ export function JobCard({
           {job.outputPath ? (
             <>
               <span>•</span>
-              <span className="font-mono">{job.outputPath}</span>
+              <span className="break-all font-mono">{job.outputPath}</span>
             </>
           ) : null}
         </div>
@@ -103,9 +103,9 @@ export function JobCard({
         ) : null}
 
         {job.assetId || job.robloxOperationId ? (
-          <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100">
-            {job.assetId ? <><span>Asset ID:</span><span className="font-mono">{job.assetId}</span></> : null}
-            {job.robloxOperationId ? <><span>•</span><span>Operation:</span><span className="font-mono">{job.robloxOperationId}</span></> : null}
+          <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm leading-6 text-emerald-100">
+            {job.assetId ? <><span>Asset ID:</span><span className="break-all font-mono">{job.assetId}</span></> : null}
+            {job.robloxOperationId ? <><span>•</span><span>Operation:</span><span className="break-all font-mono">{job.robloxOperationId}</span></> : null}
             <span>•</span>
             <span>Status: {job.robloxOperationStatus}</span>
             {job.assetId ? <><span>•</span><span>Moderation: {job.robloxModerationState}</span>{job.robloxModerationAttemptCount ? <span className="text-emerald-200/70">({job.robloxModerationAttemptCount} checks)</span> : null}</> : null}
@@ -114,7 +114,7 @@ export function JobCard({
 
         <AudioPreviewDiagnostics job={job} />
 
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-2 [&>a]:w-full [&>button]:w-full sm:[&>a]:w-auto sm:[&>button]:w-auto">
           <Button variant="outline" size="sm" onClick={() => onLogs?.(job)}>
             <Terminal /> Logs
           </Button>

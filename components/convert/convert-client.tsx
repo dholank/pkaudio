@@ -207,7 +207,7 @@ export function ConvertClient({
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(380px,0.75fr)]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(440px,0.8fr)] 2xl:grid-cols-[minmax(0,1.35fr)_minmax(480px,0.8fr)]">
         <SourceUrlsCard urls={urls} onChange={setUrls} />
         <AudioSettingsCard
           speed={speed}
