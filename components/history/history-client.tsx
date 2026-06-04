@@ -2,7 +2,7 @@
 
 import { Fragment, useMemo, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BarChart3, Copy, Download, ExternalLink, FileJson, FileSpreadsheet, RotateCcw, Search, Terminal, Trash2 } from "lucide-react";
+import { BarChart3, Copy, Download, ExternalLink, FileJson, FileSpreadsheet, Gauge, Music, RotateCcw, Search, Terminal, Trash2, Volume2, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { JobLogDialog } from "@/components/queue/job-log-dialog";
 import { StatusBadge } from "@/components/queue/status-badge";
@@ -13,6 +13,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { AUDIO_SAFETY_MODE_LABELS, formatHeadroomDb, formatTargetLufs } from "@/lib/audio/options";
 import type { CredentialView } from "@/lib/credentials/types";
 import { deleteJobRequest, fetchJobLogs, retryJobRequest } from "@/lib/jobs/client";
@@ -49,6 +55,41 @@ function moderationBadgeVariant(state: JobView["robloxModerationState"]): "secon
 
 const deletableStatuses = new Set(["queued", "converted", "done", "failed", "cancelled"]);
 
+function relativeDate(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+function AudioMetaCompact({ job }: { job: JobView }) {
+  return (
+    <div className="flex flex-wrap gap-x-2 gap-y-1 text-[11px] text-zinc-500">
+      <span className="inline-flex items-center gap-1">
+        <BarChart3 className="size-3 text-zinc-600" />
+        {formatSpeed(job.speed)}
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <Volume2 className="size-3 text-zinc-600" />
+        {formatDb(job.amplifyDb)}
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <Music className="size-3 text-zinc-600" />
+        {job.quality.toUpperCase()}
+      </span>
+      <span className="inline-flex items-center gap-1">
+        {job.limiterEnabled ? <Gauge className="size-3 text-emerald-500" /> : <span className="text-zinc-600"><Volume2 className="size-3" /></span>}
+        {job.limiterEnabled ? `${formatTargetLufs(job.targetLufs)} · ${formatHeadroomDb(job.headroomDb)}` : "Limiter off"}
+      </span>
+    </div>
+  );
+}
+
 export function HistoryClient({ jobs, credentials }: { jobs: JobView[]; credentials: CredentialView[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -60,6 +101,7 @@ export function HistoryClient({ jobs, credentials }: { jobs: JobView[]; credenti
   const [logsLoading, setLogsLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [expandedWaveformId, setExpandedWaveformId] = useState<string | null>(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const params = useMemo(() => new URLSearchParams(searchParams.toString()), [searchParams]);
   const selectedJobs = useMemo(() => jobs.filter((job) => selectedIds.has(job.id)), [jobs, selectedIds]);
@@ -153,225 +195,327 @@ export function HistoryClient({ jobs, credentials }: { jobs: JobView[]; credenti
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>History Filters</CardTitle>
-          <CardDescription>Search, filter, sort, and export SQLite job history.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-            <div className="relative">
-              <Search className="absolute left-3 top-3.5 size-4 text-zinc-600" />
-              <Input
-                className="pl-9"
-                placeholder="Search title, URL, asset ID, job ID, moderation, credential, error..."
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") applySearch();
-                }}
-              />
+    <TooltipProvider>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>History</CardTitle>
+            <CardDescription>Search, filter, and export SQLite job history.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Main filters */}
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <div className="relative">
+                <Search className="absolute left-3 top-3.5 size-4 text-zinc-600" />
+                <Input
+                  className="pl-9"
+                  placeholder="Search title, URL, asset ID, error..."
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") applySearch();
+                  }}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={applySearch} disabled={isPending}>Search</Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowAdvancedFilters((c) => !c)} className="gap-1">
+                  {showAdvancedFilters ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+                  Filters
+                </Button>
+              </div>
             </div>
-            <Button variant="outline" onClick={applySearch} disabled={isPending}>Apply</Button>
-          </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
-            <Select value={getParam(params, "status")} onValueChange={(value) => updateParam("status", value)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="queued">Queued</SelectItem>
-                <SelectItem value="downloading">Downloading</SelectItem>
-                <SelectItem value="probing">Probing</SelectItem>
-                <SelectItem value="converting">Converting</SelectItem>
-                <SelectItem value="converted">Converted</SelectItem>
-                <SelectItem value="uploading">Uploading</SelectItem>
-                <SelectItem value="done">Done</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={getParam(params, "platform")} onValueChange={(value) => updateParam("platform", value)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All platforms</SelectItem>
-                <SelectItem value="youtube">YouTube</SelectItem>
-                <SelectItem value="soundcloud">SoundCloud</SelectItem>
-                <SelectItem value="unknown">Unknown/local</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={getParam(params, "credentialId")} onValueChange={(value) => updateParam("credentialId", value)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All credentials</SelectItem>
-                {credentials.map((credential) => <SelectItem key={credential.id} value={credential.id}>{credential.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={getParam(params, "upload")} onValueChange={(value) => updateParam("upload", value)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All upload modes</SelectItem>
-                <SelectItem value="uploaded">Uploaded assets</SelectItem>
-                <SelectItem value="pending">Upload pending/failed</SelectItem>
-                <SelectItem value="local">Local only</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={getParam(params, "moderation")} onValueChange={(value) => updateParam("moderation", value)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All moderation</SelectItem>
-                <SelectItem value="none">Not checked</SelectItem>
-                <SelectItem value="reviewing">Reviewing</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="unknown">Unknown</SelectItem>
-                <SelectItem value="failed">Check failed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={getParam(params, "dateRange")} onValueChange={(value) => updateParam("dateRange", value)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All time</SelectItem>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="week">Last 7 days</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={getParam(params, "sort", "newest")} onValueChange={(value) => updateParam("sort", value)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
-                <SelectItem value="title">Title A-Z</SelectItem>
-                <SelectItem value="duration">Duration</SelectItem>
-                <SelectItem value="size">File size</SelectItem>
-                <SelectItem value="peak">Peak volume</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-zinc-500">Showing {jobs.length} job{jobs.length === 1 ? "" : "s"}. {selectedJobs.length ? `${selectedJobs.length} selected.` : ""}</p>
-            <div className="flex flex-wrap gap-2">
-              {selectedJobs.length ? (
-                <>
-                  <Button variant="outline" size="sm" onClick={() => void copySelectedAssetIds()}><Copy /> Copy selected IDs</Button>
-                  <Button variant="ghost" size="sm" className="text-rose-200 hover:text-rose-100" onClick={() => void deleteSelectedJobs()}><Trash2 /> Delete selected</Button>
-                </>
-              ) : null}
-              <Button variant="outline" size="sm" asChild><a href={exportHref("csv", params)}><FileSpreadsheet /> Export CSV</a></Button>
-              <Button variant="outline" size="sm" asChild><a href={exportHref("json", params)}><FileJson /> Export JSON</a></Button>
-              <Button variant="ghost" size="sm" onClick={() => { setQuery(""); startTransition(() => router.push("/history")); }}>Reset</Button>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Select value={getParam(params, "status")} onValueChange={(value) => updateParam("status", value)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="queued">Queued</SelectItem>
+                  <SelectItem value="downloading">Downloading</SelectItem>
+                  <SelectItem value="probing">Probing</SelectItem>
+                  <SelectItem value="converting">Converting</SelectItem>
+                  <SelectItem value="converted">Converted</SelectItem>
+                  <SelectItem value="uploading">Uploading</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={getParam(params, "platform")} onValueChange={(value) => updateParam("platform", value)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All platforms</SelectItem>
+                  <SelectItem value="youtube">YouTube</SelectItem>
+                  <SelectItem value="soundcloud">SoundCloud</SelectItem>
+                  <SelectItem value="unknown">Unknown/local</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={getParam(params, "sort", "newest")} onValueChange={(value) => updateParam("sort", value)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="oldest">Oldest</SelectItem>
+                  <SelectItem value="title">Title A-Z</SelectItem>
+                  <SelectItem value="duration">Duration</SelectItem>
+                  <SelectItem value="size">File size</SelectItem>
+                  <SelectItem value="peak">Peak volume</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Conversion History</CardTitle>
-          <CardDescription>Real SQLite jobs with converted OGG diagnostics, upload state, and moderation data.</CardDescription>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>
-                  <input
-                    type="checkbox"
-                    className="size-4 rounded border-white/10 bg-white/[0.06] accent-cyan-400"
-                    checked={allVisibleSelected}
-                    onChange={(event) => toggleAllVisible(event.target.checked)}
-                    aria-label="Select all visible jobs"
-                  />
-                </TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Platform</TableHead>
-                <TableHead>Audio</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Moderation</TableHead>
-                <TableHead>Diagnostics</TableHead>
-                <TableHead>Asset ID</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {jobs.map((job) => (
-                <Fragment key={job.id}>
+            {/* Advanced filters — collapsible */}
+            {showAdvancedFilters ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <Select value={getParam(params, "credentialId")} onValueChange={(value) => updateParam("credentialId", value)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All credentials</SelectItem>
+                    {credentials.map((credential) => <SelectItem key={credential.id} value={credential.id}>{credential.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={getParam(params, "upload")} onValueChange={(value) => updateParam("upload", value)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All upload modes</SelectItem>
+                    <SelectItem value="uploaded">Uploaded assets</SelectItem>
+                    <SelectItem value="pending">Upload pending/failed</SelectItem>
+                    <SelectItem value="local">Local only</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={getParam(params, "moderation")} onValueChange={(value) => updateParam("moderation", value)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All moderation</SelectItem>
+                    <SelectItem value="none">Not checked</SelectItem>
+                    <SelectItem value="reviewing">Reviewing</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="unknown">Unknown</SelectItem>
+                    <SelectItem value="failed">Check failed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={getParam(params, "dateRange")} onValueChange={(value) => updateParam("dateRange", value)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All time</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="week">Last 7 days</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
+
+            {/* Bulk actions */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-zinc-500">
+                {jobs.length} job{/* grammar */}{jobs.length === 1 ? "" : "s"}
+                {selectedJobs.length ? ` · ${selectedJobs.length} selected` : ""}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {selectedJobs.length ? (
+                  <>
+                    <Button variant="outline" size="sm" onClick={() => void copySelectedAssetIds()}><Copy /> Copy IDs</Button>
+                    <Button variant="outline" size="sm" className="border-rose-500/30 text-rose-300 hover:border-rose-400/50 hover:bg-rose-500/10" onClick={() => void deleteSelectedJobs()}><Trash2 /> Delete</Button>
+                  </>
+                ) : null}
+                <Button variant="outline" size="sm" asChild><a href={exportHref("csv", params)}><FileSpreadsheet /> CSV</a></Button>
+                <Button variant="outline" size="sm" asChild><a href={exportHref("json", params)}><FileJson /> JSON</a></Button>
+                <Button variant="ghost" size="sm" onClick={() => { setQuery(""); startTransition(() => router.push("/history")); }}>Reset</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Table: 6 columns */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Conversion History</CardTitle>
+            <CardDescription>All SQLite jobs with audio settings, Roblox status, and conversion results.</CardDescription>
+          </CardHeader>
+          <CardContent className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell>
+                  <TableHead className="w-10">
                     <input
                       type="checkbox"
                       className="size-4 rounded border-white/10 bg-white/[0.06] accent-cyan-400"
-                      checked={selectedIds.has(job.id)}
-                      onChange={(event) => toggleJobSelection(job.id, event.target.checked)}
-                      aria-label={`Select job ${job.id}`}
+                      checked={allVisibleSelected}
+                      onChange={(event) => toggleAllVisible(event.target.checked)}
+                      aria-label="Select all visible jobs"
                     />
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-[360px] truncate font-medium text-white">{job.title ?? "Queued source"}</div>
-                    <div className="max-w-[360px] truncate font-mono text-xs text-zinc-600">{job.sourceUrl}</div>
-                    <div className="mt-1 font-mono text-[11px] text-zinc-700">{job.id.slice(0, 8)}</div>
-                  </TableCell>
-                  <TableCell><Badge variant="secondary">{job.sourcePlatform}</Badge></TableCell>
-                  <TableCell className="text-zinc-400">
-                    <div>{formatSpeed(job.speed)} • gain {formatDb(job.amplifyDb)} • {job.quality.toUpperCase()}</div>
-                    <div className="mt-1 text-xs text-zinc-600">{AUDIO_SAFETY_MODE_LABELS[job.audioSafetyMode]} • {job.limiterEnabled ? `${formatTargetLufs(job.targetLufs)} → peak ≤ ${formatHeadroomDb(job.headroomDb)}` : "Limiter OFF"}</div>
-                    <div className="mt-1 text-xs text-zinc-600">Attempt {job.attemptCount}/{job.maxAttempts}</div>
-                  </TableCell>
-                  <TableCell><StatusBadge status={job.status} /></TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <Badge variant={moderationBadgeVariant(job.robloxModerationState)}>{job.robloxModerationState}</Badge>
-                      <div className="text-xs text-zinc-600">
-                        {job.robloxModerationCheckedAt ? new Date(job.robloxModerationCheckedAt).toLocaleString() : "Not checked"}
-                        {job.robloxModerationAttemptCount ? ` • ${job.robloxModerationAttemptCount} checks` : ""}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-xs text-zinc-500">
-                    <div>{formatDuration(job.outputDurationSec)} • {job.outputSizeBytes !== null ? formatBytes(job.outputSizeBytes) : "—"}</div>
-                    <div className="font-mono">Peak {job.outputPeakDb !== null ? `${job.outputPeakDb.toFixed(2)} dBFS` : "—"}</div>
-                  </TableCell>
-                  <TableCell className="font-mono text-zinc-400">{job.assetId ?? "—"}</TableCell>
-                  <TableCell className="text-zinc-500">{new Date(job.updatedAt).toLocaleString()}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => void handleLogs(job)}><Terminal /></Button>
-                      {job.assetId ? <Button variant="outline" size="sm" onClick={() => void copyText(job.assetId!, "Asset ID")}><Copy /></Button> : null}
-                      {job.assetId ? <Button variant="outline" size="sm" asChild><a href={`https://create.roblox.com/store/asset/${job.assetId}`} target="_blank" rel="noreferrer"><ExternalLink /></a></Button> : null}
-                      {job.outputPath ? (
-                        <Button
-                          variant={expandedWaveformId === job.id ? "secondary" : "outline"}
-                          size="sm"
-                          onClick={() => setExpandedWaveformId((current) => (current === job.id ? null : job.id))}
-                          aria-label="Toggle waveform graph"
-                        >
-                          <BarChart3 />
-                        </Button>
-                      ) : null}
-                      {job.outputPath ? <Button variant="outline" size="sm" asChild><a href={outputDownloadHref(job.outputPath)}><Download /></a></Button> : null}
-                      {job.status === "failed" || job.status === "cancelled" ? <Button variant="ghost" size="sm" onClick={() => void handleRetry(job)}><RotateCcw /></Button> : null}
-                    </div>
-                  </TableCell>
+                  </TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Audio</TableHead>
+                  <TableHead>Asset</TableHead>
+                  <TableHead className="w-28">Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-                {expandedWaveformId === job.id && job.outputPath ? (
+              </TableHeader>
+              <TableBody>
+                {jobs.map((job) => (
+                  <Fragment key={job.id}>
                   <TableRow>
-                    <TableCell colSpan={10} className="bg-black/20">
-                      <WaveformLoudnessGraph outputPath={job.outputPath} />
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        className="size-4 rounded border-white/10 bg-white/[0.06] accent-cyan-400"
+                        checked={selectedIds.has(job.id)}
+                        onChange={(event) => toggleJobSelection(job.id, event.target.checked)}
+                        aria-label={`Select job ${job.id}`}
+                      />
+                    </TableCell>
+
+                    {/* Title + Status */}
+                    <TableCell>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <StatusBadge status={job.status} />
+                        <Badge variant="secondary" className="text-[10px]">{job.sourcePlatform}</Badge>
+                      </div>
+                      <div className="mt-1 max-w-[320px] truncate font-medium text-white">
+                        {job.title ?? "Queued source"}
+                      </div>
+                      <div className="max-w-[320px] truncate font-mono text-xs text-zinc-600">
+                        {job.sourceUrl}
+                      </div>
+                      <div className="font-mono text-[11px] text-zinc-700">{job.id.slice(0, 8)}</div>
+                    </TableCell>
+
+                    {/* Audio (compact) */}
+                    <TableCell>
+                      <AudioMetaCompact job={job} />
+                      {job.outputDurationSec !== null || job.outputSizeBytes !== null ? (
+                        <div className="mt-1 text-[11px] text-zinc-600">
+                          {job.outputDurationSec !== null ? `${formatDuration(job.outputDurationSec)}` : ""}
+                          {job.outputDurationSec !== null && job.outputSizeBytes !== null ? " · " : ""}
+                          {job.outputSizeBytes !== null ? formatBytes(job.outputSizeBytes) : ""}
+                          {job.outputPeakDb !== null ? ` · ${job.outputPeakDb.toFixed(1)} dBFS` : ""}
+                        </div>
+                      ) : null}
+                      {job.outputPath ? (
+                        <button
+                          className="mt-1 inline-flex items-center gap-1 text-[11px] text-cyan-400/70 hover:text-cyan-300"
+                          onClick={() => setExpandedWaveformId((current) => (current === job.id ? null : job.id))}
+                        >
+                          <BarChart3 className="size-3" />
+                          Waveform
+                        </button>
+                      ) : null}
+                    </TableCell>
+
+                    {/* Asset + Moderation */}
+                    <TableCell>
+                      {job.assetId ? (
+                        <div className="font-mono text-xs text-emerald-200/90">{job.assetId}</div>
+                      ) : (
+                        <span className="text-xs text-zinc-600">—</span>
+                      )}
+                      <div className="mt-1">
+                        {job.robloxModerationState !== "none" ? (
+                          <Badge variant={moderationBadgeVariant(job.robloxModerationState)} className="text-[10px]">
+                            {job.robloxModerationState}
+                          </Badge>
+                        ) : job.uploadEnabled ? (
+                          <span className="text-[11px] text-zinc-600">Uploading...</span>
+                        ) : null}
+                      </div>
+                    </TableCell>
+
+                    {/* Date */}
+                    <TableCell>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="cursor-default text-sm text-zinc-400">{relativeDate(job.updatedAt)}</span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="text-xs">
+                          <p>{new Date(job.updatedAt).toLocaleString()}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+
+                    {/* Actions */}
+                    <TableCell>
+                      <div className="flex justify-end gap-1.5">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-8 w-8 p-0 sm:w-auto sm:px-2" onClick={() => void handleLogs(job)}>
+                              <Terminal className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs"><p>Logs</p></TooltipContent>
+                        </Tooltip>
+
+                        {job.assetId ? (
+                          <>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 w-8 p-0 sm:w-auto sm:px-2" onClick={() => void copyText(job.assetId!, "Asset ID")}>
+                                  <Copy className="size-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs"><p>Copy ID</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 w-8 p-0 sm:w-auto sm:px-2" asChild>
+                                  <a href={`https://create.roblox.com/store/asset/${job.assetId}`} target="_blank" rel="noreferrer">
+                                    <ExternalLink className="size-4" />
+                                  </a>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs"><p>Open</p></TooltipContent>
+                            </Tooltip>
+                          </>
+                        ) : null}
+
+                        {job.outputPath ? (
+                          <>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 w-8 p-0 sm:w-auto sm:px-2" asChild>
+                                  <a href={outputDownloadHref(job.outputPath)}>
+                                    <Download className="size-4" />
+                                  </a>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs"><p>Download OGG</p></TooltipContent>
+                            </Tooltip>
+                          </>
+                        ) : null}
+
+                        {job.status === "failed" || job.status === "cancelled" ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-8 w-8 p-0 sm:w-auto sm:px-2" onClick={() => void handleRetry(job)}>
+                                <RotateCcw className="size-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs"><p>Retry</p></TooltipContent>
+                          </Tooltip>
+                        ) : null}
+                      </div>
                     </TableCell>
                   </TableRow>
-                ) : null}
-                </Fragment>
-              ))}
-            </TableBody>
-          </Table>
-          {!jobs.length ? <div className="rounded-xl border border-white/10 bg-white/[0.035] p-6 text-sm text-zinc-500">No jobs match the current filters.</div> : null}
-        </CardContent>
-      </Card>
 
-      <JobLogDialog open={logsOpen} job={selectedJob} logs={logs} loading={logsLoading} onOpenChange={setLogsOpen} />
-    </div>
+                  {/* Expanded waveform */}
+                  {expandedWaveformId === job.id && job.outputPath ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="bg-black/20">
+                        <WaveformLoudnessGraph outputPath={job.outputPath} />
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                  </Fragment>
+                ))}
+              </TableBody>
+            </Table>
+            {!jobs.length ? <div className="rounded-xl border border-white/10 bg-white/[0.035] p-6 text-sm text-zinc-500">No jobs match the current filters.</div> : null}
+          </CardContent>
+        </Card>
+
+        <JobLogDialog open={logsOpen} job={selectedJob} logs={logs} loading={logsLoading} onOpenChange={setLogsOpen} />
+      </div>
+    </TooltipProvider>
   );
 }
