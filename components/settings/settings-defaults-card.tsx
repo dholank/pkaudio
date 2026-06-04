@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RotateCcw, Save, Settings2, ShieldCheck } from "lucide-react";
+import { patchJson, postJson } from "@/lib/api/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,12 +27,6 @@ import {
 } from "@/lib/audio/options";
 import type { CredentialView } from "@/lib/credentials/types";
 import type { AppSettingsView, CleanupRetention, CleanupTarget } from "@/lib/settings/types";
-
-async function parseResponse<T>(response: Response): Promise<T> {
-  const payload = (await response.json()) as T & { error?: string };
-  if (!response.ok) throw new Error(payload.error ?? "Request failed.");
-  return payload;
-}
 
 function toNumber(value: string, fallback: number) {
   const parsed = Number(value);
@@ -72,28 +67,22 @@ export function SettingsDefaultsCard({
   async function saveSettings() {
     setSaving(true);
     try {
-      const result = await parseResponse<{ settings: AppSettingsView }>(
-        await fetch("/api/settings", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            defaultSpeed: settings.defaultSpeed,
-            defaultAmplifyDb: settings.defaultAmplifyDb,
-            defaultTargetLufs: settings.defaultTargetLufs,
-            defaultQuality: settings.defaultQuality,
-            defaultAudioSafetyMode: settings.defaultAudioSafetyMode,
-            defaultHeadroomDb: settings.defaultHeadroomDb,
-            defaultLimiterEnabled: settings.defaultLimiterEnabled,
-            defaultUploadEnabled: settings.defaultUploadEnabled,
-            defaultCredentialId: settings.defaultCredentialId,
-            defaultAssetNamePattern: settings.defaultAssetNamePattern,
-            cleanupTarget: settings.cleanupTarget,
-            cleanupRetention: settings.cleanupRetention,
-            maxConcurrentJobs: settings.maxConcurrentJobs,
-            retryCount: settings.retryCount,
-          }),
-        }),
-      );
+      const result = await patchJson<{ settings: AppSettingsView }>("/api/settings", {
+        defaultSpeed: settings.defaultSpeed,
+        defaultAmplifyDb: settings.defaultAmplifyDb,
+        defaultTargetLufs: settings.defaultTargetLufs,
+        defaultQuality: settings.defaultQuality,
+        defaultAudioSafetyMode: settings.defaultAudioSafetyMode,
+        defaultHeadroomDb: settings.defaultHeadroomDb,
+        defaultLimiterEnabled: settings.defaultLimiterEnabled,
+        defaultUploadEnabled: settings.defaultUploadEnabled,
+        defaultCredentialId: settings.defaultCredentialId,
+        defaultAssetNamePattern: settings.defaultAssetNamePattern,
+        cleanupTarget: settings.cleanupTarget,
+        cleanupRetention: settings.cleanupRetention,
+        maxConcurrentJobs: settings.maxConcurrentJobs,
+        retryCount: settings.retryCount,
+      });
       setSettings(result.settings);
       toast.success("Settings saved. Convert will use these defaults for new batches.");
     } catch (error) {
@@ -107,7 +96,7 @@ export function SettingsDefaultsCard({
     if (!window.confirm("Reset all PKAudio defaults to factory values?")) return;
     setResetting(true);
     try {
-      const result = await parseResponse<{ settings: AppSettingsView }>(await fetch("/api/settings", { method: "POST" }));
+      const result = await postJson<{ settings: AppSettingsView }>("/api/settings");
       setSettings(result.settings);
       toast.success("Settings reset to defaults.");
     } catch (error) {

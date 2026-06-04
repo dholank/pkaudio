@@ -1,3 +1,4 @@
+import { getJson, postJson, deleteJson } from "@/lib/api/client";
 import type { BatchView, JobLogView, JobView } from "@/lib/jobs/types";
 import type { AudioQuality, AudioSafetyMode } from "@/lib/audio/options";
 import type { AutoCutPreview } from "@/lib/trim/preview";
@@ -15,82 +16,56 @@ export type BatchSettingsRequestInput = {
   assetNamePattern: string;
 };
 
-async function parseResponse<T>(response: Response): Promise<T> {
-  const payload = (await response.json()) as T & { error?: string };
-
-  if (!response.ok) {
-    throw new Error(payload.error ?? "Request failed.");
-  }
-
-  return payload;
-}
-
 export async function createBatchRequest(input: BatchSettingsRequestInput & { urls: string[] }) {
-  return parseResponse<{ batch: BatchView; jobs: JobView[] }>(
-    await fetch("/api/batches", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    }),
-  );
+  return postJson<{ batch: BatchView; jobs: JobView[] }>("/api/batches", input);
 }
 
 export async function analyzeAutoCutRequest(input: { url: string }) {
-  return parseResponse<{ preview: AutoCutPreview }>(
-    await fetch("/api/trim/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    }),
-  );
+  return postJson<{ preview: AutoCutPreview }>("/api/trim/analyze", input);
 }
 
 export async function createTrimBatchRequest(input: BatchSettingsRequestInput & { previewId: string }) {
-  return parseResponse<{ batch: BatchView; jobs: JobView[]; preview: AutoCutPreview }>(
-    await fetch("/api/trim/batches", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    }),
-  );
+  return postJson<{ batch: BatchView; jobs: JobView[]; preview: AutoCutPreview }>("/api/trim/batches", input);
 }
 
-export async function fetchJobs(params: { status?: string; q?: string; batchId?: string; scope?: string; platform?: string; credentialId?: string; upload?: string; moderation?: string; dateRange?: string; sort?: string; limit?: string } = {}) {
+export async function fetchJobs(params: {
+  status?: string; q?: string; batchId?: string; scope?: string;
+  platform?: string; credentialId?: string; upload?: string;
+  moderation?: string; dateRange?: string; sort?: string; limit?: string;
+} = {}) {
   const searchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value) searchParams.set(key, value);
   }
   const suffix = searchParams.toString() ? `?${searchParams.toString()}` : "";
-  return parseResponse<{ jobs: JobView[]; batch?: BatchView | null; stats: Record<string, number> }>(
-    await fetch(`/api/jobs${suffix}`, { cache: "no-store" }),
+  return getJson<{ jobs: JobView[]; batch?: BatchView | null; stats: Record<string, number> }>(
+    `/api/jobs${suffix}`,
   );
 }
 
 export async function cancelJobRequest(id: string) {
-  return parseResponse<{ job: JobView }>(await fetch(`/api/jobs/${id}/cancel`, { method: "POST" }));
+  return postJson<{ job: JobView }>(`/api/jobs/${id}/cancel`);
 }
 
 export async function retryJobRequest(id: string) {
-  return parseResponse<{ job: JobView }>(await fetch(`/api/jobs/${id}/retry`, { method: "POST" }));
+  return postJson<{ job: JobView }>(`/api/jobs/${id}/retry`);
 }
 
 export async function deleteJobRequest(id: string, options: { deleteArtifacts?: boolean } = {}) {
   const searchParams = new URLSearchParams();
   if (options.deleteArtifacts === false) searchParams.set("deleteArtifacts", "false");
   const suffix = searchParams.toString() ? `?${searchParams.toString()}` : "";
-  return parseResponse<{ deleted: boolean; result: unknown }>(await fetch(`/api/jobs/${id}${suffix}`, { method: "DELETE" }));
+  return deleteJson<{ deleted: boolean; result: unknown }>(`/api/jobs/${id}${suffix}`);
 }
 
 export async function fetchJobLogs(id: string) {
-  return parseResponse<{ job: JobView; logs: JobLogView[] }>(
-    await fetch(`/api/jobs/${id}/logs`, { cache: "no-store" }),
-  );
+  return getJson<{ job: JobView; logs: JobLogView[] }>(`/api/jobs/${id}/logs`);
 }
 
 export async function auditRobloxJobRequest(id: string) {
-  return parseResponse<{ job: JobView; audit: unknown }>(await fetch(`/api/jobs/${id}/roblox-status`, { method: "POST" }));
+  return postJson<{ job: JobView; audit: unknown }>(`/api/jobs/${id}/roblox-status`);
 }
 
 export async function checkRobloxModerationRequest(id: string) {
-  return parseResponse<{ job: JobView; audit: unknown }>(await fetch(`/api/jobs/${id}/roblox-moderation`, { method: "POST" }));
+  return postJson<{ job: JobView; audit: unknown }>(`/api/jobs/${id}/roblox-moderation`);
 }
