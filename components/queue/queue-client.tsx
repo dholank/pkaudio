@@ -16,13 +16,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { CredentialView } from "@/lib/credentials/types";
 import { auditRobloxJobRequest, checkRobloxModerationRequest, fetchJobLogs, fetchJobs } from "@/lib/jobs/client";
 import type { BatchView, JobLogView, JobView } from "@/lib/jobs/types";
+import { robloxAudioCode, sortJobsForRobloxAudioCode } from "@/lib/roblox/audio-code";
 import type { WorkerHealthStatus } from "@/lib/worker/health";
 
 const liveStatuses = new Set(["queued", "downloading", "probing", "converting", "converted", "uploading"]);
-
-function assetUri(assetId: string) {
-  return `rbxassetid://${assetId}`;
-}
+const pendingModerationStates = new Set(["none", "reviewing", "unknown", "failed"]);
 
 function computeLatestStats(jobs: JobView[]) {
   const converting = jobs.filter((job) => ["queued", "downloading", "probing", "converting"].includes(job.status)).length;
@@ -69,7 +67,11 @@ export function QueueClient({
 
   const stats = useMemo(() => computeLatestStats(jobs), [jobs]);
   const hasLiveJobs = useMemo(() => jobs.some((job) => liveStatuses.has(job.status)), [jobs]);
-  const uploadedJobs = useMemo(() => jobs.filter((job) => job.assetId), [jobs]);
+  const hasPendingModeration = useMemo(
+    () => jobs.some((job) => Boolean(job.assetId) && pendingModerationStates.has(job.robloxModerationState)),
+    [jobs],
+  );
+  const uploadedJobs = useMemo(() => sortJobsForRobloxAudioCode(jobs.filter((job) => job.assetId)), [jobs]);
   const filteredJobs = useMemo(() => {
     const q = query.trim().toLowerCase();
     return jobs.filter((job) => {
@@ -101,10 +103,10 @@ export function QueueClient({
   }, [query, statusFilter]);
 
   useEffect(() => {
-    if (!hasLiveJobs) return;
+    if (!hasLiveJobs && !hasPendingModeration) return;
     const timer = window.setInterval(() => void refreshJobs(true), 2500);
     return () => window.clearInterval(timer);
-  }, [hasLiveJobs, refreshJobs]);
+  }, [hasLiveJobs, hasPendingModeration, refreshJobs]);
 
   async function handleLogs(job: JobView) {
     setSelectedJob(job);
@@ -144,32 +146,32 @@ export function QueueClient({
 
   async function copyAssetId(job: JobView) {
     if (!job.assetId) return;
-    await copyText(assetUri(job.assetId), "Asset ID");
+    await copyText(robloxAudioCode(job), "Roblox audio code");
   }
 
   async function copyTitleAsset(job: JobView) {
     if (!job.assetId) return;
-    await copyText(`${job.title ?? "Untitled audio"} — ${assetUri(job.assetId)}`, "Title + asset ID");
+    await copyText(robloxAudioCode(job), "Roblox audio code");
   }
 
   async function copyAllAssetIds() {
     if (!uploadedJobs.length) {
-      toast.error("No uploaded asset IDs in the latest queue yet.");
+      toast.error("No uploaded audio code lines in the latest queue yet.");
       return;
     }
-    await copyText(uploadedJobs.map((job) => assetUri(job.assetId!)).join("\n"), `${uploadedJobs.length} asset ID${uploadedJobs.length === 1 ? "" : "s"}`);
+    await copyText(uploadedJobs.map(robloxAudioCode).join("\n"), `${uploadedJobs.length} Roblox audio code line${uploadedJobs.length === 1 ? "" : "s"}`);
     const skipped = jobs.length - uploadedJobs.length;
     if (skipped > 0) toast.info(`${skipped} latest queue item${skipped === 1 ? "" : "s"} skipped because upload is not done yet.`);
   }
 
   async function copyAllTitleAssets() {
     if (!uploadedJobs.length) {
-      toast.error("No uploaded title + asset ID lines in the latest queue yet.");
+      toast.error("No uploaded audio code lines in the latest queue yet.");
       return;
     }
     await copyText(
-      uploadedJobs.map((job) => `${job.title ?? "Untitled audio"} — ${assetUri(job.assetId!)}`).join("\n"),
-      `${uploadedJobs.length} title + asset ID line${uploadedJobs.length === 1 ? "" : "s"}`,
+      uploadedJobs.map(robloxAudioCode).join("\n"),
+      `${uploadedJobs.length} Roblox audio code line${uploadedJobs.length === 1 ? "" : "s"}`,
     );
     const skipped = jobs.length - uploadedJobs.length;
     if (skipped > 0) toast.info(`${skipped} latest queue item${skipped === 1 ? "" : "s"} skipped because upload is not done yet.`);
@@ -193,8 +195,8 @@ export function QueueClient({
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => void copyAllAssetIds()} disabled={!uploadedJobs.length}><Copy /> Copy all IDs</Button>
-            <Button onClick={() => void copyAllTitleAssets()} disabled={!uploadedJobs.length}><Copy /> Copy title + IDs</Button>
+            <Button variant="outline" onClick={() => void copyAllAssetIds()} disabled={!uploadedJobs.length}><Copy /> Copy code</Button>
+            <Button onClick={() => void copyAllTitleAssets()} disabled={!uploadedJobs.length}><Copy /> Copy title</Button>
             <Button variant="ghost" asChild><Link href="/history"><History /> History</Link></Button>
           </div>
         </CardContent>

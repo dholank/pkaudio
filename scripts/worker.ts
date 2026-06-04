@@ -101,10 +101,8 @@ async function processUploadQueue(options: { wait?: boolean } = {}) {
 
 async function pollModerationQueue() {
   const moderation = await pollDueRobloxModerationJobs();
-  if (moderation.checked > 0 || moderation.failed > 0 || moderation.maxAttemptsReached > 0) {
-    console.log(
-      `[worker] moderation checked=${moderation.checked} final=${moderation.final} failed=${moderation.failed} maxAttempts=${moderation.maxAttemptsReached}`,
-    );
+  if (moderation.checked > 0 || moderation.failed > 0) {
+    console.log(`[worker] moderation checked=${moderation.checked} final=${moderation.final} failed=${moderation.failed}`);
   }
   return moderation;
 }

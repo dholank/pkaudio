@@ -10,6 +10,7 @@ import {
   History,
   KeyRound,
   ListMusic,
+  Scissors,
   Settings,
   Sparkles,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 
 const navItems: Array<{ href: Route; label: string; icon: LucideIcon }> = [
   { href: "/convert", label: "Convert", icon: AudioWaveform },
+  { href: "/auto-cut" as Route, label: "Auto Cut", icon: Scissors },
   { href: "/queue", label: "Queue", icon: ListMusic },
   { href: "/credentials", label: "Credentials", icon: KeyRound },
   { href: "/history", label: "History", icon: History },

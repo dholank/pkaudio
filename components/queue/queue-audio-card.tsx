@@ -4,6 +4,7 @@ import { BarChart3, CheckCircle2, Copy, Download, ExternalLink, FileAudio2, Info
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { QueueMiniWaveform } from "@/components/queue/waveform-loudness-graph";
 import { AUDIO_SAFETY_MODE_LABELS, formatHeadroomDb, formatTargetLufs } from "@/lib/audio/options";
 import type { JobView } from "@/lib/jobs/types";
 import { formatBytes, formatDb, formatDuration, formatSpeed } from "@/lib/utils";
@@ -39,21 +40,27 @@ function uploadStatus(job: JobView): QueueStatusItem {
   return { label: "Upload pending", variant: "warning" as const, icon: UploadCloud };
 }
 
+function moderationCheckSuffix(job: JobView) {
+  if (job.robloxModerationAttemptCount <= 0) return "";
+  return ` · ${job.robloxModerationAttemptCount} check${job.robloxModerationAttemptCount === 1 ? "" : "s"}`;
+}
+
 function moderationStatus(job: JobView): QueueStatusItem {
+  const checks = moderationCheckSuffix(job);
   switch (job.robloxModerationState) {
     case "approved":
-      return { label: "Accepted", variant: "success" as const, icon: ShieldCheck };
+      return { label: `Accepted${checks}`, variant: "success" as const, icon: ShieldCheck };
     case "reviewing":
-      return { label: "Reviewing", variant: "warning" as const, icon: ShieldCheck };
+      return { label: `Reviewing${checks}`, variant: "warning" as const, icon: ShieldCheck };
     case "rejected":
-      return { label: "Rejected", variant: "destructive" as const, icon: XCircle };
+      return { label: `Rejected${checks}`, variant: "destructive" as const, icon: XCircle };
     case "failed":
-      return { label: "Moderation failed", variant: "destructive" as const, icon: XCircle };
+      return { label: `Moderation retrying${checks}`, variant: "warning" as const, icon: Info };
     case "unknown":
-      return { label: "Moderation unknown", variant: "warning" as const, icon: Info };
+      return { label: `Moderation unknown${checks}`, variant: "warning" as const, icon: Info };
     case "none":
     default:
-      return { label: "Not checked", variant: "secondary" as const, icon: ShieldCheck };
+      return { label: `Not checked${checks}`, variant: "secondary" as const, icon: ShieldCheck };
   }
 }
 
@@ -89,7 +96,7 @@ export function QueueAudioCard({
 
   return (
     <article className="rounded-2xl border border-white/10 bg-white/[0.035] p-3 shadow-card transition hover:border-cyan-500/20 hover:bg-white/[0.05] sm:p-4">
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="flex flex-col gap-3 lg:flex-row">
         <div className="flex size-20 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-gradient-to-br from-violet-500/25 via-cyan-500/10 to-emerald-500/10 sm:size-24">
           <div className="grid size-12 place-items-center rounded-full border border-white/10 bg-black/25 text-cyan-100">
             <FileAudio2 className="size-6" />
@@ -142,12 +149,18 @@ export function QueueAudioCard({
 
           {job.error ? <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">{job.error}</div> : null}
         </div>
+
+        {job.outputPath ? (
+          <div className="w-full shrink-0 lg:w-64 xl:w-72">
+            <QueueMiniWaveform outputPath={job.outputPath} />
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 [&>a]:h-8 [&>button]:h-8">
         <Button variant="outline" size="sm" onClick={() => onLogs?.(job)}><Terminal /> Logs</Button>
-        {job.assetId ? <Button variant="outline" size="sm" onClick={() => onCopyAssetId?.(job)}><Copy /> Copy ID</Button> : null}
-        {job.assetId ? <Button variant="outline" size="sm" onClick={() => onCopyTitleAsset?.(job)}><Copy /> Title + ID</Button> : null}
+        {job.assetId ? <Button variant="outline" size="sm" onClick={() => onCopyAssetId?.(job)}><Copy /> Copy Code</Button> : null}
+        {job.assetId ? <Button variant="outline" size="sm" onClick={() => onCopyTitleAsset?.(job)}><Copy /> Title + Code</Button> : null}
         {canCheckRoblox ? <Button variant="outline" size="sm" onClick={() => onAuditRoblox?.(job)}><ShieldCheck /> Roblox</Button> : null}
         {canCheckModeration ? <Button variant="outline" size="sm" onClick={() => onCheckRobloxModeration?.(job)}><ShieldCheck /> Moderation</Button> : null}
         {job.assetId ? <Button variant="outline" size="sm" asChild><a href={`https://create.roblox.com/store/asset/${job.assetId}`} target="_blank" rel="noreferrer"><ExternalLink /> Asset</a></Button> : null}

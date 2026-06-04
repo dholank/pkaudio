@@ -36,14 +36,14 @@ export function RobloxUploadCard({
           <CardTitle className="flex items-center gap-2">
             <KeyRound className="size-4 text-cyan-300" /> Roblox Upload
           </CardTitle>
-          <CardDescription>Choose an encrypted Open Cloud key for automatic Roblox audio asset upload after conversion.</CardDescription>
+          <CardDescription>Select an encrypted Open Cloud key for auto-upload.</CardDescription>
         </div>
         <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
           <span className="text-xs text-zinc-400">Auto upload</span>
           <Switch checked={uploadEnabled} onCheckedChange={onUploadEnabledChange} />
         </div>
       </CardHeader>
-      <CardContent className="grid gap-5 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+      <CardContent className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-start">
         <div className="space-y-2">
           <Label>Target credential</Label>
           <Select value={selectedCredential} onValueChange={onCredentialChange} disabled={!uploadEnabled || loading || credentials.length === 0}>
@@ -73,13 +73,13 @@ export function RobloxUploadCard({
             Tokens: <span className="font-mono text-zinc-300">{"{title}"}</span>, <span className="font-mono text-zinc-300">{"{id}"}</span>, <span className="font-mono text-zinc-300">{"{platform}"}</span>. Final Roblox title is cleaned and capped to 50 chars.
           </p>
         </div>
-        <Button variant="outline" className="lg:mb-0" asChild>
+        <Button variant="outline" className="lg:mt-7" asChild>
           <Link href="/credentials">Manage Keys</Link>
         </Button>
         <div className="lg:col-span-3 rounded-xl border border-emerald-500/15 bg-emerald-500/8 px-3 py-3 text-xs leading-5 text-emerald-100/85">
           <div className="flex gap-2">
             <ShieldCheck className="mt-0.5 size-4 shrink-0" />
-            <span>Saved keys are encrypted locally with AES-256-GCM. The worker decrypts the selected key only in memory while uploading to Roblox. Description stays fixed as “Uploaded By PK Audio”.</span>
+            <span>Keys encrypted with AES-256-GCM. Worker decrypts in memory only. Description: "Uploaded By PK Audio".</span>
           </div>
         </div>
       </CardContent>

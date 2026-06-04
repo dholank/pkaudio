@@ -74,6 +74,13 @@ function ensureSchema(sqlite: SqliteDatabase) {
       credential_id TEXT REFERENCES credentials(id) ON DELETE SET NULL,
       credential_name TEXT,
       asset_name_pattern TEXT NOT NULL,
+      source_local_path TEXT,
+      trim_group_id TEXT,
+      trim_original_url TEXT,
+      trim_part_index INTEGER,
+      trim_part_total INTEGER,
+      trim_start_sec REAL,
+      trim_duration_sec REAL,
       output_path TEXT,
       output_duration_sec REAL,
       output_size_bytes INTEGER,
@@ -345,6 +352,13 @@ function ensureAdvancedAudioTableMigrations(sqlite: SqliteDatabase) {
         credential_id TEXT REFERENCES credentials(id) ON DELETE SET NULL,
         credential_name TEXT,
         asset_name_pattern TEXT NOT NULL,
+        source_local_path TEXT,
+        trim_group_id TEXT,
+        trim_original_url TEXT,
+        trim_part_index INTEGER,
+        trim_part_total INTEGER,
+        trim_start_sec REAL,
+        trim_duration_sec REAL,
         output_path TEXT,
         output_duration_sec REAL,
         output_size_bytes INTEGER,
@@ -419,7 +433,8 @@ function ensureAdvancedAudioTableMigrations(sqlite: SqliteDatabase) {
       INSERT INTO jobs_new (
         id, batch_id, source_url, source_platform, title, status, progress, speed, amplify_db, target_lufs, quality,
         audio_safety_mode, headroom_db, limiter_enabled, upload_enabled, credential_id, credential_name,
-        asset_name_pattern, output_path, output_duration_sec, output_size_bytes, output_peak_db, output_mean_db,
+        asset_name_pattern, source_local_path, trim_group_id, trim_original_url, trim_part_index, trim_part_total,
+        trim_start_sec, trim_duration_sec, output_path, output_duration_sec, output_size_bytes, output_peak_db, output_mean_db,
         output_sample_rate, output_channels, attempt_count, max_attempts, asset_id, roblox_operation_id,
         roblox_operation_path, roblox_operation_status, roblox_operation_checked_at, roblox_operation_raw,
         roblox_moderation_state, roblox_moderation_checked_at, roblox_moderation_raw,
@@ -427,7 +442,8 @@ function ensureAdvancedAudioTableMigrations(sqlite: SqliteDatabase) {
       )
       SELECT id, batch_id, source_url, source_platform, title, status, progress, speed, amplify_db, COALESCE(target_lufs, -14), quality,
         audio_safety_mode, headroom_db, limiter_enabled, upload_enabled, credential_id, credential_name,
-        asset_name_pattern, output_path, output_duration_sec, output_size_bytes, output_peak_db, output_mean_db,
+        asset_name_pattern, source_local_path, trim_group_id, trim_original_url, trim_part_index, trim_part_total,
+        trim_start_sec, trim_duration_sec, output_path, output_duration_sec, output_size_bytes, output_peak_db, output_mean_db,
         output_sample_rate, output_channels, attempt_count, max_attempts, asset_id, roblox_operation_id,
         roblox_operation_path, roblox_operation_status, roblox_operation_checked_at, roblox_operation_raw,
         roblox_moderation_state, roblox_moderation_checked_at, roblox_moderation_raw,
@@ -492,6 +508,13 @@ function ensureMigrations(sqlite: SqliteDatabase) {
   ensureColumn(sqlite, "jobs", "audio_safety_mode", "audio_safety_mode TEXT NOT NULL DEFAULT 'roblox_safe'");
   ensureColumn(sqlite, "jobs", "headroom_db", "headroom_db REAL NOT NULL DEFAULT -3");
   ensureColumn(sqlite, "jobs", "target_lufs", "target_lufs REAL NOT NULL DEFAULT -14");
+  ensureColumn(sqlite, "jobs", "source_local_path", "source_local_path TEXT");
+  ensureColumn(sqlite, "jobs", "trim_group_id", "trim_group_id TEXT");
+  ensureColumn(sqlite, "jobs", "trim_original_url", "trim_original_url TEXT");
+  ensureColumn(sqlite, "jobs", "trim_part_index", "trim_part_index INTEGER");
+  ensureColumn(sqlite, "jobs", "trim_part_total", "trim_part_total INTEGER");
+  ensureColumn(sqlite, "jobs", "trim_start_sec", "trim_start_sec REAL");
+  ensureColumn(sqlite, "jobs", "trim_duration_sec", "trim_duration_sec REAL");
   ensureColumn(sqlite, "jobs", "output_duration_sec", "output_duration_sec REAL");
   ensureColumn(sqlite, "jobs", "output_size_bytes", "output_size_bytes INTEGER");
   ensureColumn(sqlite, "jobs", "output_peak_db", "output_peak_db REAL");

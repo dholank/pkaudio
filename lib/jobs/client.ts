@@ -1,5 +1,19 @@
 import type { BatchView, JobLogView, JobView } from "@/lib/jobs/types";
 import type { AudioQuality, AudioSafetyMode } from "@/lib/audio/options";
+import type { AutoCutPreview } from "@/lib/trim/preview";
+
+export type BatchSettingsRequestInput = {
+  speed: number;
+  amplifyDb: number;
+  targetLufs: number;
+  quality: AudioQuality;
+  audioSafetyMode: AudioSafetyMode;
+  headroomDb: number;
+  limiterEnabled: boolean;
+  uploadEnabled: boolean;
+  credentialId?: string | null;
+  assetNamePattern: string;
+};
 
 async function parseResponse<T>(response: Response): Promise<T> {
   const payload = (await response.json()) as T & { error?: string };
@@ -11,21 +25,29 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return payload;
 }
 
-export async function createBatchRequest(input: {
-  urls: string[];
-  speed: number;
-  amplifyDb: number;
-  targetLufs: number;
-  quality: AudioQuality;
-  audioSafetyMode: AudioSafetyMode;
-  headroomDb: number;
-  limiterEnabled: boolean;
-  uploadEnabled: boolean;
-  credentialId?: string | null;
-  assetNamePattern: string;
-}) {
+export async function createBatchRequest(input: BatchSettingsRequestInput & { urls: string[] }) {
   return parseResponse<{ batch: BatchView; jobs: JobView[] }>(
     await fetch("/api/batches", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    }),
+  );
+}
+
+export async function analyzeAutoCutRequest(input: { url: string }) {
+  return parseResponse<{ preview: AutoCutPreview }>(
+    await fetch("/api/trim/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    }),
+  );
+}
+
+export async function createTrimBatchRequest(input: BatchSettingsRequestInput & { previewId: string }) {
+  return parseResponse<{ batch: BatchView; jobs: JobView[]; preview: AutoCutPreview }>(
+    await fetch("/api/trim/batches", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),

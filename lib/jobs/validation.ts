@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { AUDIO_QUALITIES, AUDIO_SAFETY_MODES, MAX_HEADROOM_DB, MAX_TARGET_LUFS, MIN_HEADROOM_DB, MIN_TARGET_LUFS } from "@/lib/audio/options";
 
-export const createBatchSchema = z.object({
-  urls: z.array(z.string().trim().url()).min(1).max(100),
+const batchSettingsSchema = z.object({
   speed: z.number().min(0.5).max(3),
   amplifyDb: z.number().min(-12).max(12),
   targetLufs: z.number().min(MIN_TARGET_LUFS).max(MAX_TARGET_LUFS).default(-14),
@@ -13,6 +12,14 @@ export const createBatchSchema = z.object({
   uploadEnabled: z.boolean(),
   credentialId: z.string().trim().min(1).nullable().optional(),
   assetNamePattern: z.string().trim().min(1).max(120),
+});
+
+export const createBatchSchema = batchSettingsSchema.extend({
+  urls: z.array(z.string().trim().url()).min(1).max(100),
+});
+
+export const createTrimBatchSchema = batchSettingsSchema.extend({
+  previewId: z.string().trim().uuid(),
 });
 
 export const listJobsQuerySchema = z.object({
@@ -34,5 +41,6 @@ export const exportJobsQuerySchema = listJobsQuerySchema.extend({
 });
 
 export type CreateBatchInput = z.infer<typeof createBatchSchema>;
+export type CreateTrimBatchRequestInput = z.infer<typeof createTrimBatchSchema>;
 export type ListJobsQueryInput = z.infer<typeof listJobsQuerySchema>;
 export type ExportJobsQueryInput = z.infer<typeof exportJobsQuerySchema>;

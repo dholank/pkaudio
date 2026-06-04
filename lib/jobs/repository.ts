@@ -6,6 +6,7 @@ import { getCredentialById } from "@/lib/credentials/repository";
 import { deleteJobArtifacts, type JobArtifactCleanupResult } from "@/lib/storage/local";
 import type { BatchStatus, BatchView, JobLogView, JobStatus, JobView, RobloxModerationState, SourcePlatform } from "@/lib/jobs/types";
 import type { CreateBatchInput, ListJobsQueryInput } from "@/lib/jobs/validation";
+import { formatTrimPartTitle } from "@/lib/trim/auto-cut";
 
 function iso(timestamp: number) {
   return new Date(timestamp).toISOString();
@@ -60,6 +61,13 @@ export function toJobView(row: JobRow): JobView {
     credentialId: row.credentialId,
     credentialName: row.credentialName,
     assetNamePattern: row.assetNamePattern,
+    sourceLocalPath: row.sourceLocalPath,
+    trimGroupId: row.trimGroupId,
+    trimOriginalUrl: row.trimOriginalUrl,
+    trimPartIndex: row.trimPartIndex,
+    trimPartTotal: row.trimPartTotal,
+    trimStartSec: row.trimStartSec,
+    trimDurationSec: row.trimDurationSec,
     outputPath: row.outputPath,
     outputDurationSec: row.outputDurationSec,
     outputSizeBytes: row.outputSizeBytes,
@@ -188,6 +196,13 @@ export async function createBatch(input: CreateBatchInput) {
       credentialId,
       credentialName,
       assetNamePattern: input.assetNamePattern,
+      sourceLocalPath: null,
+      trimGroupId: null,
+      trimOriginalUrl: null,
+      trimPartIndex: null,
+      trimPartTotal: null,
+      trimStartSec: null,
+      trimDurationSec: null,
       outputPath: null,
       outputDurationSec: null,
       outputSizeBytes: null,
@@ -231,6 +246,132 @@ export async function createBatch(input: CreateBatchInput) {
   });
 
   return transactionResult;
+}
+
+export type CreateTrimBatchInput = Omit<CreateBatchInput, "urls"> & {
+  sourceUrl: string;
+  sourceTitle?: string | null;
+  parts: Array<{
+    index: number;
+    total: number;
+    startSec: number;
+    durationSec: number;
+    sourceLocalPath: string;
+    title?: string | null;
+  }>;
+};
+
+export async function createTrimBatch(input: CreateTrimBatchInput) {
+  const parts = [...input.parts].sort((a, b) => a.index - b.index);
+  if (!parts.length) throw new Error("At least one trim part is required.");
+
+  let credentialName: string | null = null;
+  let credentialId: string | null = null;
+
+  if (input.uploadEnabled) {
+    if (!input.credentialId) throw new Error("Credential is required when auto upload is enabled.");
+    const credential = await getCredentialById(input.credentialId);
+    if (!credential) throw new Error("Selected credential was not found.");
+    credentialId = credential.id;
+    credentialName = credential.name;
+  }
+
+  const now = Date.now();
+  const batchId = randomUUID();
+  const trimGroupId = randomUUID();
+  const batchName = `Trim Batch ${new Date(now).toLocaleString("en-US", { hour12: false })}`;
+
+  const db = getDb();
+  return db.transaction(() => {
+    const batchRow = {
+      id: batchId,
+      name: batchName,
+      status: "queued" as const,
+      urlCount: parts.length,
+      speed: input.speed,
+      amplifyDb: input.amplifyDb,
+      targetLufs: input.targetLufs,
+      quality: input.quality,
+      audioSafetyMode: input.audioSafetyMode,
+      headroomDb: input.headroomDb,
+      limiterEnabled: input.limiterEnabled,
+      uploadEnabled: input.uploadEnabled,
+      credentialId,
+      credentialName,
+      assetNamePattern: input.assetNamePattern,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    db.insert(batches).values(batchRow).run();
+
+    const jobRows = parts.map((part) => ({
+      id: randomUUID(),
+      batchId,
+      sourceUrl: input.sourceUrl,
+      sourcePlatform: detectSourcePlatform(input.sourceUrl),
+      title: part.title ?? formatTrimPartTitle(input.sourceTitle, part),
+      status: "queued" as const,
+      progress: 0,
+      speed: input.speed,
+      amplifyDb: input.amplifyDb,
+      targetLufs: input.targetLufs,
+      quality: input.quality,
+      audioSafetyMode: input.audioSafetyMode,
+      headroomDb: input.headroomDb,
+      limiterEnabled: input.limiterEnabled,
+      uploadEnabled: input.uploadEnabled,
+      credentialId,
+      credentialName,
+      assetNamePattern: input.assetNamePattern,
+      sourceLocalPath: part.sourceLocalPath,
+      trimGroupId,
+      trimOriginalUrl: input.sourceUrl,
+      trimPartIndex: part.index,
+      trimPartTotal: part.total,
+      trimStartSec: part.startSec,
+      trimDurationSec: part.durationSec,
+      outputPath: null,
+      outputDurationSec: null,
+      outputSizeBytes: null,
+      outputPeakDb: null,
+      outputMeanDb: null,
+      outputSampleRate: null,
+      outputChannels: null,
+      attemptCount: 0,
+      maxAttempts: 1,
+      assetId: null,
+      robloxOperationId: null,
+      robloxOperationPath: null,
+      robloxOperationStatus: "none" as const,
+      robloxOperationCheckedAt: null,
+      robloxOperationRaw: null,
+      robloxModerationState: "none" as const,
+      robloxModerationCheckedAt: null,
+      robloxModerationRaw: null,
+      robloxModerationAttemptCount: 0,
+      error: null,
+      createdAt: now + part.index,
+      updatedAt: now,
+    }));
+
+    db.insert(jobs).values(jobRows).run();
+
+    const logRows: NewJobLogRow[] = jobRows.map((job) => ({
+      id: randomUUID(),
+      jobId: job.id,
+      level: "info",
+      message: `Trim part ${job.trimPartIndex}/${job.trimPartTotal} queued from ${job.trimStartSec}s for ${job.trimDurationSec}s. Local media worker will convert this part when running.`,
+      createdAt: now,
+    }));
+
+    db.insert(jobLogs).values(logRows).run();
+
+    return {
+      batch: toBatchView(batchRow),
+      jobs: jobRows.map(toJobView),
+    };
+  });
 }
 
 export async function listBatches(limit = 50) {
@@ -314,11 +455,21 @@ export async function getLatestBatch() {
   return row ? toBatchView(row) : null;
 }
 
+function sortTrimPartsFirstByIndex(jobList: JobView[]) {
+  if (!jobList.some((job) => job.trimPartIndex !== null)) return jobList;
+  return [...jobList].sort((a, b) => {
+    if (a.trimPartIndex !== null && b.trimPartIndex !== null) return a.trimPartIndex - b.trimPartIndex;
+    if (a.trimPartIndex !== null) return -1;
+    if (b.trimPartIndex !== null) return 1;
+    return Date.parse(a.createdAt) - Date.parse(b.createdAt);
+  });
+}
+
 export async function listLatestBatchJobs(options: ListJobsQueryInput = {}) {
   const latestBatch = await getLatestBatch();
   if (!latestBatch) return { batch: null, jobs: [] as JobView[] };
   const latestJobs = await listJobs({ ...options, batchId: latestBatch.id });
-  return { batch: latestBatch, jobs: latestJobs };
+  return { batch: latestBatch, jobs: options.sort ? latestJobs : sortTrimPartsFirstByIndex(latestJobs) };
 }
 
 export async function getJobById(id: string) {
@@ -666,10 +817,9 @@ export async function recordRobloxOperationAudit(
   return updated;
 }
 
-export async function listDueRobloxModerationJobs(options: { limit?: number; intervalMs?: number; maxAttempts?: number } = {}) {
+export async function listDueRobloxModerationJobs(options: { limit?: number; intervalMs?: number } = {}) {
   const limit = Math.max(1, Math.min(50, Math.floor(options.limit ?? 8)));
   const intervalMs = Math.max(5000, Math.floor(options.intervalMs ?? 15000));
-  const maxAttempts = Math.max(1, Math.floor(options.maxAttempts ?? 40));
   const cutoff = Date.now() - intervalMs;
 
   const rows = getDb()
@@ -680,8 +830,7 @@ export async function listDueRobloxModerationJobs(options: { limit?: number; int
         eq(jobs.status, "done"),
         sql`${jobs.assetId} is not null`,
         sql`${jobs.credentialId} is not null`,
-        inArray(jobs.robloxModerationState, ["none", "reviewing", "unknown"]),
-        lt(jobs.robloxModerationAttemptCount, maxAttempts),
+        inArray(jobs.robloxModerationState, ["none", "reviewing", "unknown", "failed"]),
         or(sql`${jobs.robloxModerationCheckedAt} is null`, lt(jobs.robloxModerationCheckedAt, cutoff)),
       ),
     )

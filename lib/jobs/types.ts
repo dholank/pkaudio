@@ -57,6 +57,13 @@ export type JobView = {
   credentialId: string | null;
   credentialName: string | null;
   assetNamePattern: string;
+  sourceLocalPath: string | null;
+  trimGroupId: string | null;
+  trimOriginalUrl: string | null;
+  trimPartIndex: number | null;
+  trimPartTotal: number | null;
+  trimStartSec: number | null;
+  trimDurationSec: number | null;
   outputPath: string | null;
   outputDurationSec: number | null;
   outputSizeBytes: number | null;

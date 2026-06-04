@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ListMusic } from "lucide-react";
+import { History, ListMusic } from "lucide-react";
 import { toast } from "sonner";
 import { AudioSettingsCard } from "@/components/convert/audio-settings-card";
 import { BatchSummaryCard } from "@/components/convert/batch-summary-card";
@@ -202,7 +202,7 @@ export function ConvertClient({
             <Input value={presetName} onChange={(event) => setPresetName(event.target.value)} placeholder="Fast SFX" />
           </div>
           <Button variant="outline" onClick={() => void saveCurrentAsPreset()} disabled={savingPreset}>
-            {savingPreset ? "Saving..." : "Save current preset"}
+            {savingPreset ? "Saving..." : "Save preset"}
           </Button>
         </CardContent>
       </Card>
@@ -256,7 +256,7 @@ export function ConvertClient({
         <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
           <div>
             <CardTitle>Recent Queue</CardTitle>
-            <CardDescription>Real queued jobs are stored in SQLite. Run <span className="font-mono text-zinc-300">npm run worker</span> to convert OGG files and auto-upload enabled jobs to Roblox.</CardDescription>
+            <CardDescription>Jobs stored in SQLite. Run <span className="font-mono text-zinc-300">npm run worker</span> to convert & auto-upload.</CardDescription>
           </div>
           <Button variant="outline" size="sm" asChild><Link href="/queue">View all</Link></Button>
         </CardHeader>

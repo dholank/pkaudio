@@ -60,7 +60,8 @@ async function fileExists(filePath: string) {
   }
 }
 
-function localSourcePath(sourceUrl: string) {
+function localSourcePath(sourceUrl: string | null | undefined) {
+  if (!sourceUrl) return null;
   if (sourceUrl.startsWith("file://")) return fileURLToPath(sourceUrl);
   if (path.isAbsolute(sourceUrl)) return sourceUrl;
   return null;
@@ -83,6 +84,11 @@ function parseJson<T>(text: string): T | null {
 }
 
 export async function getSourceInfo(job: JobView) {
+  const trimLocalPath = localSourcePath(job.sourceLocalPath);
+  if (trimLocalPath && (await fileExists(trimLocalPath))) {
+    return { title: job.title ?? path.basename(trimLocalPath, path.extname(trimLocalPath)) } satisfies YtdlpInfo;
+  }
+
   const localPath = localSourcePath(job.sourceUrl);
   if (localPath && (await fileExists(localPath))) {
     return { title: path.basename(localPath, path.extname(localPath)) } satisfies YtdlpInfo;
@@ -96,6 +102,16 @@ export async function getSourceInfo(job: JobView) {
 }
 
 export async function downloadAudio(job: JobView, jobTmpDir: string) {
+  const trimLocalPath = localSourcePath(job.sourceLocalPath);
+  if (trimLocalPath) {
+    if (!(await fileExists(trimLocalPath))) throw new Error(`Trimmed source file does not exist: ${trimLocalPath}`);
+    const extension = path.extname(trimLocalPath) || ".audio";
+    const targetPath = path.join(jobTmpDir, `source${extension}`);
+    await fs.copyFile(trimLocalPath, targetPath);
+    await addJobLog(job.id, `Using local auto-cut part: ${trimLocalPath}`);
+    return targetPath;
+  }
+
   const localPath = localSourcePath(job.sourceUrl);
   if (localPath) {
     if (!(await fileExists(localPath))) throw new Error(`Local source file does not exist: ${localPath}`);

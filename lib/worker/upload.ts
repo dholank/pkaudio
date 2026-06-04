@@ -4,6 +4,7 @@ import { addJobLog, failJob, updateJobProgress, type AudioDiagnosticsPatch } fro
 import type { JobView } from "@/lib/jobs/types";
 import { cleanRobloxAudioTitle, ROBLOX_AUDIO_DESCRIPTION } from "@/lib/roblox/metadata";
 import { renderAssetName, uploadRobloxAudioAsset } from "@/lib/roblox/upload";
+import { checkRobloxModerationJob } from "@/lib/worker/moderation";
 
 const cwd = process.cwd();
 
@@ -87,7 +88,23 @@ export async function processRobloxUploadJob(job: JobView) {
       error: null,
     });
     await addJobLog(job.id, `Roblox upload completed. Asset ID: ${result.assetId}. Operation status: ${result.operationStatus}.`);
-    await addJobLog(job.id, "Roblox moderation polling queued in the background.");
+    await addJobLog(job.id, "Roblox moderation immediate check queued; background worker will keep checking until approved/rejected.");
+    await checkRobloxModerationJob({
+      ...job,
+      status: "done",
+      progress: 100,
+      assetId: result.assetId,
+      robloxOperationId: result.operationId,
+      robloxOperationPath: result.operationPath,
+      robloxOperationStatus: result.operationStatus,
+      robloxOperationCheckedAt: new Date().toISOString(),
+      robloxOperationRaw: JSON.stringify(result.rawOperation),
+      robloxModerationState: "reviewing",
+      robloxModerationCheckedAt: null,
+      robloxModerationRaw: null,
+      robloxModerationAttemptCount: 0,
+      error: null,
+    });
     return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown Roblox upload worker error.";
