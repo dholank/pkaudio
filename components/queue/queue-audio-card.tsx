@@ -89,10 +89,10 @@ export function QueueAudioCard({
 
   return (
     <article className="rounded-2xl border border-white/10 bg-white/[0.035] p-3 shadow-card transition hover:border-cyan-500/20 hover:bg-white/[0.05] sm:p-4">
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="flex size-24 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-gradient-to-br from-violet-500/25 via-cyan-500/10 to-emerald-500/10 sm:size-28">
-          <div className="grid size-14 place-items-center rounded-full border border-white/10 bg-black/25 text-cyan-100">
-            <FileAudio2 className="size-7" />
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex size-20 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-gradient-to-br from-violet-500/25 via-cyan-500/10 to-emerald-500/10 sm:size-24">
+          <div className="grid size-12 place-items-center rounded-full border border-white/10 bg-black/25 text-cyan-100">
+            <FileAudio2 className="size-6" />
           </div>
         </div>
 
@@ -142,16 +142,16 @@ export function QueueAudioCard({
 
           {job.error ? <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">{job.error}</div> : null}
         </div>
+      </div>
 
-        <div className="flex shrink-0 flex-wrap gap-2 sm:w-36 sm:flex-col">
-          <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => onLogs?.(job)}><Terminal /> Logs</Button>
-          {job.assetId ? <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => onCopyAssetId?.(job)}><Copy /> Copy ID</Button> : null}
-          {job.assetId ? <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => onCopyTitleAsset?.(job)}><Copy /> Title + ID</Button> : null}
-          {canCheckRoblox ? <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => onAuditRoblox?.(job)}><ShieldCheck /> Roblox</Button> : null}
-          {canCheckModeration ? <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => onCheckRobloxModeration?.(job)}><ShieldCheck /> Moderation</Button> : null}
-          {job.assetId ? <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild><a href={`https://create.roblox.com/store/asset/${job.assetId}`} target="_blank" rel="noreferrer"><ExternalLink /> Asset</a></Button> : null}
-          {job.outputPath ? <Button variant="ghost" size="sm" className="flex-1 sm:flex-none" asChild><a href={outputDownloadHref(job.outputPath)}><Download /> OGG</a></Button> : null}
-        </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 [&>a]:h-8 [&>button]:h-8">
+        <Button variant="outline" size="sm" onClick={() => onLogs?.(job)}><Terminal /> Logs</Button>
+        {job.assetId ? <Button variant="outline" size="sm" onClick={() => onCopyAssetId?.(job)}><Copy /> Copy ID</Button> : null}
+        {job.assetId ? <Button variant="outline" size="sm" onClick={() => onCopyTitleAsset?.(job)}><Copy /> Title + ID</Button> : null}
+        {canCheckRoblox ? <Button variant="outline" size="sm" onClick={() => onAuditRoblox?.(job)}><ShieldCheck /> Roblox</Button> : null}
+        {canCheckModeration ? <Button variant="outline" size="sm" onClick={() => onCheckRobloxModeration?.(job)}><ShieldCheck /> Moderation</Button> : null}
+        {job.assetId ? <Button variant="outline" size="sm" asChild><a href={`https://create.roblox.com/store/asset/${job.assetId}`} target="_blank" rel="noreferrer"><ExternalLink /> Asset</a></Button> : null}
+        {job.outputPath ? <Button variant="ghost" size="sm" asChild><a href={outputDownloadHref(job.outputPath)}><Download /> OGG</a></Button> : null}
       </div>
     </article>
   );
