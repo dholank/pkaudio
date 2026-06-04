@@ -8,100 +8,11 @@ import type { BatchStatus, BatchView, JobLogView, JobStatus, JobView, RobloxMode
 import type { CreateBatchInput, ListJobsQueryInput } from "@/lib/jobs/validation";
 import { formatTrimPartTitle } from "@/lib/trim/auto-cut";
 
-function iso(timestamp: number) {
-  return new Date(timestamp).toISOString();
-}
+// Use mappers locally
+import { detectSourcePlatform, iso, toBatchView, toJobView, toJobLogView } from "@/lib/jobs/mappers";
 
-export function detectSourcePlatform(url: string): SourcePlatform {
-  const lower = url.toLowerCase();
-  if (lower.includes("youtube.com") || lower.includes("youtu.be")) return "youtube";
-  if (lower.includes("soundcloud.com")) return "soundcloud";
-  return "unknown";
-}
-
-export function toBatchView(row: BatchRow): BatchView {
-  return {
-    id: row.id,
-    name: row.name,
-    status: row.status,
-    urlCount: row.urlCount,
-    speed: row.speed,
-    amplifyDb: row.amplifyDb,
-    targetLufs: row.targetLufs,
-    quality: row.quality,
-    audioSafetyMode: row.audioSafetyMode,
-    headroomDb: row.headroomDb,
-    limiterEnabled: row.limiterEnabled,
-    uploadEnabled: row.uploadEnabled,
-    credentialId: row.credentialId,
-    credentialName: row.credentialName,
-    assetNamePattern: row.assetNamePattern,
-    createdAt: iso(row.createdAt),
-    updatedAt: iso(row.updatedAt),
-  };
-}
-
-export function toJobView(row: JobRow): JobView {
-  return {
-    id: row.id,
-    batchId: row.batchId,
-    sourceUrl: row.sourceUrl,
-    sourcePlatform: row.sourcePlatform,
-    title: row.title,
-    status: row.status,
-    progress: row.progress,
-    speed: row.speed,
-    amplifyDb: row.amplifyDb,
-    targetLufs: row.targetLufs,
-    quality: row.quality,
-    audioSafetyMode: row.audioSafetyMode,
-    headroomDb: row.headroomDb,
-    limiterEnabled: row.limiterEnabled,
-    uploadEnabled: row.uploadEnabled,
-    credentialId: row.credentialId,
-    credentialName: row.credentialName,
-    assetNamePattern: row.assetNamePattern,
-    sourceLocalPath: row.sourceLocalPath,
-    trimGroupId: row.trimGroupId,
-    trimOriginalUrl: row.trimOriginalUrl,
-    trimPartIndex: row.trimPartIndex,
-    trimPartTotal: row.trimPartTotal,
-    trimStartSec: row.trimStartSec,
-    trimDurationSec: row.trimDurationSec,
-    outputPath: row.outputPath,
-    outputDurationSec: row.outputDurationSec,
-    outputSizeBytes: row.outputSizeBytes,
-    outputPeakDb: row.outputPeakDb,
-    outputMeanDb: row.outputMeanDb,
-    outputSampleRate: row.outputSampleRate,
-    outputChannels: row.outputChannels,
-    attemptCount: row.attemptCount,
-    maxAttempts: row.maxAttempts,
-    assetId: row.assetId,
-    robloxOperationId: row.robloxOperationId,
-    robloxOperationPath: row.robloxOperationPath,
-    robloxOperationStatus: row.robloxOperationStatus,
-    robloxOperationCheckedAt: row.robloxOperationCheckedAt ? iso(row.robloxOperationCheckedAt) : null,
-    robloxOperationRaw: row.robloxOperationRaw,
-    robloxModerationState: row.robloxModerationState,
-    robloxModerationCheckedAt: row.robloxModerationCheckedAt ? iso(row.robloxModerationCheckedAt) : null,
-    robloxModerationRaw: row.robloxModerationRaw,
-    robloxModerationAttemptCount: row.robloxModerationAttemptCount,
-    error: row.error,
-    createdAt: iso(row.createdAt),
-    updatedAt: iso(row.updatedAt),
-  };
-}
-
-export function toJobLogView(row: JobLogRow): JobLogView {
-  return {
-    id: row.id,
-    jobId: row.jobId,
-    level: row.level,
-    message: row.message,
-    createdAt: iso(row.createdAt),
-  };
-}
+// Re-export pure mappers (barrel for backward compat)
+export { detectSourcePlatform, iso, toBatchView, toJobView, toJobLogView } from "@/lib/jobs/mappers";
 
 const ACTIVE_JOB_STATUSES = ["downloading", "probing", "converting", "uploading"] as const satisfies readonly JobStatus[];
 const DELETABLE_JOB_STATUSES = ["queued", "converted", "done", "failed", "cancelled"] as const satisfies readonly JobStatus[];
@@ -408,7 +319,7 @@ function orderForJobs(sort: ListJobsQueryInput["sort"] = "newest") {
   }
 }
 
-export async function listJobs(options: ListJobsQueryInput = {}) {
+export async function listJobs(options: ListJobsQueryInput = {}): Promise<JobView[]> {
   const filters = [];
   if (options.status && options.status !== "all") filters.push(eq(jobs.status, options.status as JobStatus));
   if (options.batchId) filters.push(eq(jobs.batchId, options.batchId));
@@ -465,7 +376,7 @@ function sortTrimPartsFirstByIndex(jobList: JobView[]) {
   });
 }
 
-export async function listLatestBatchJobs(options: ListJobsQueryInput = {}) {
+export async function listLatestBatchJobs(options: ListJobsQueryInput = {}): Promise<{ jobs: JobView[]; batch: BatchView | null }> {
   const latestBatch = await getLatestBatch();
   if (!latestBatch) return { batch: null, jobs: [] as JobView[] };
   const latestJobs = await listJobs({ ...options, batchId: latestBatch.id });

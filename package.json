@@ -12,6 +12,8 @@
     "pkaudio": "tsx scripts/pkaudio.ts",
     "qa": "tsx scripts/qa.ts",
     "qa:full": "tsx scripts/qa.ts --full",
+    "smoke": "tsx scripts/smoke-all.ts",
+    "verify": "npm run typecheck && npm run lint && npm run build && npm run smoke",
     "worker": "tsx scripts/worker.ts",
     "worker:once": "tsx scripts/worker.ts --once"
   },
