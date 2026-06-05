@@ -144,7 +144,7 @@ async function main() {
   log("open http://localhost:3000 after Next.js prints ready.", colors.cyan);
   log("press Ctrl+C once to stop both processes cleanly.", colors.dim);
 
-  spawnManaged("web", colors.cyan, npmCommand, ["run", "dev"]);
+  spawnManaged("web", colors.cyan, npmCommand, ["run", "start"]);
   spawnManaged("worker", colors.magenta, npmCommand, ["run", "worker"]);
 }
 
