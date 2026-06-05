@@ -35,7 +35,7 @@ export function CredentialFormCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><KeyRound className="size-4 text-cyan-300" /> Add Credential</CardTitle>
+        <CardTitle className="flex items-center gap-2"><KeyRound className="size-4 text-white" /> Add Credential</CardTitle>
         <CardDescription>Save a Roblox Open Cloud API key. Needs Assets API permission for creator uploads.</CardDescription>
       </CardHeader>
       <CardContent>

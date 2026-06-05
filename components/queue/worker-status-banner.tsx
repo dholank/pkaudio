@@ -38,10 +38,10 @@ export function WorkerStatusBanner({ initialStatus }: { initialStatus: WorkerHea
     return (
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-100/85">
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="mt-0.5 size-5 text-emerald-300" />
+          <CheckCircle2 className="mt-0.5 size-5 text-white" />
           <div>
             <p className="font-medium text-emerald-100">Worker online: {status.summary.onlineWorkers} daemon(s), {status.summary.maxConcurrentJobs} concurrent slot(s).</p>
-            <p className="mt-1 text-emerald-100/70">Active jobs: {status.summary.activeJobCount} • queued: {status.queueDepth.queued} • converted/upload-ready: {status.queueDepth.converted} • last seen {formatRelative(status.summary.newestLastSeenAt)}</p>
+            <p className="mt-1 text-[#bbbbbb]">Active jobs: {status.summary.activeJobCount} • queued: {status.queueDepth.queued} • converted/upload-ready: {status.queueDepth.converted} • last seen {formatRelative(status.summary.newestLastSeenAt)}</p>
           </div>
         </div>
         <Button variant="ghost" size="sm" onClick={() => void refresh()} disabled={refreshing}>

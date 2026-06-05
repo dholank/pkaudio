@@ -16,63 +16,99 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)", "Inter", "-apple-system", "BlinkMacSystemFont", '"Segoe UI"', "Roboto", "sans-serif"],
+        mono: ["var(--font-geist-mono)", '"JetBrains Mono"', "ui-monospace", "monospace"],
+        display: ["var(--font-inter)", "Inter", "sans-serif"],
+      },
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        // BMW M Design System
+        border: "var(--color-border)",
+        input: "var(--color-input)",
+        ring: "var(--color-ring)",
+        background: "var(--color-background)",
+        foreground: "var(--color-foreground)",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "var(--color-primary)",
+          foreground: "var(--color-primary-foreground)",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "var(--color-secondary)",
+          foreground: "var(--color-secondary-foreground)",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "var(--color-destructive)",
+          foreground: "var(--color-destructive-foreground)",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "var(--color-muted)",
+          foreground: "var(--color-muted-foreground)",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "var(--color-accent)",
+          foreground: "var(--color-accent-foreground)",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "var(--color-popover)",
+          foreground: "var(--color-popover-foreground)",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "var(--color-card)",
+          foreground: "var(--color-card-foreground)",
         },
+        // BMW M brand accents
+        bmw: {
+          "blue-light": "#0066b1",
+          "blue-dark": "#1c69d4",
+          red: "#e22718",
+          "electric-blue": "#0653b6",
+        },
+        // Surface tones
+        surface: {
+          card: "#1a1a1a",
+          elevated: "#262626",
+          soft: "#0d0d0d",
+          "carbon-gray": "#2b2b2b",
+        },
+        // Hairlines
+        hairline: "#3c3c3c",
+        "hairline-strong": "#262626",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        none: "0px",
+        xs: "2px",
+        sm: "4px",
+        md: "6px",
+        full: "9999px",
       },
+      // No shadows — BMW M uses flat surfaces, no drop shadows
       boxShadow: {
-        glow: "0 0 32px rgba(139, 92, 246, 0.18)",
-        card: "0 1px 0 rgba(255, 255, 255, 0.03), 0 20px 60px rgba(0, 0, 0, 0.28)",
+        none: "none",
+        hairline: "inset 0 0 0 1px #3c3c3c",
       },
-      keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
-        },
+      fontSize: {
+        // BMW typography scale
+        "display-xl": ["80px", { lineHeight: "1", fontWeight: "700", letterSpacing: "0" }],
+        "display-lg": ["56px", { lineHeight: "1.05", fontWeight: "700", letterSpacing: "0" }],
+        "display-md": ["40px", { lineHeight: "1.1", fontWeight: "700", letterSpacing: "0" }],
+        "display-sm": ["32px", { lineHeight: "1.15", fontWeight: "700", letterSpacing: "0" }],
+        "title-lg": ["24px", { lineHeight: "1.3", fontWeight: "700", letterSpacing: "0" }],
+        "title-md": ["20px", { lineHeight: "1.4", fontWeight: "400", letterSpacing: "0" }],
+        "title-sm": ["18px", { lineHeight: "1.4", fontWeight: "400", letterSpacing: "0" }],
+        "label-uppercase": ["14px", { lineHeight: "1.3", fontWeight: "700", letterSpacing: "1.5px" }],
+        "body-md": ["16px", { lineHeight: "1.5", fontWeight: "300", letterSpacing: "0" }],
+        "body-sm": ["14px", { lineHeight: "1.5", fontWeight: "300", letterSpacing: "0" }],
+        caption: ["12px", { lineHeight: "1.4", fontWeight: "400", letterSpacing: "0.5px" }],
       },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+      spacing: {
+        xxs: "4px",
+        xs: "8px",
+        sm: "12px",
+        md: "16px",
+        lg: "24px",
+        xl: "40px",
+        xxl: "64px",
+        section: "96px",
       },
     },
   },

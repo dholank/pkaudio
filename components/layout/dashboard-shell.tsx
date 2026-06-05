@@ -1,18 +1,20 @@
+"use client";
+
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
-import { Topbar } from "@/components/layout/topbar";
 
-export function DashboardShell({ children }: Readonly<{ children: React.ReactNode }>) {
+export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen">
-      <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
+    <div className="flex min-h-screen bg-[#000]">
+      <div className="hidden md:block">
         <AppSidebar />
       </div>
-      <div className="lg:pl-72">
-        <MobileNav />
-        <Topbar />
-        <main className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-8 lg:py-8">{children}</main>
-      </div>
+      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          {children}
+        </div>
+      </main>
+      <MobileNav />
     </div>
   );
 }
