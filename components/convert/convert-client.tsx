@@ -132,7 +132,7 @@ export function ConvertClient({
 
       <RecentQueueCard
         jobs={recentJobs}
-        workerHint='Run <span class="font-mono text-zinc-300">npm run worker</span> to convert & auto-upload.'
+        workerHint={<>Run <span className="font-mono text-zinc-300">npm run worker</span> to convert & auto-upload.</>}
         emptyTitle="No active jobs"
         emptyDescription="Paste a YouTube or SoundCloud URL to start converting audio for Roblox."
       />

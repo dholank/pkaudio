@@ -10,7 +10,6 @@ import {
   requeueJobAfterTransientFailure, updateJobProgress, type AudioDiagnosticsPatch,
 } from "@/lib/jobs/repository";
 import type { JobView } from "@/lib/jobs/types";
-import { runCommand } from "@/lib/system/command";
 import { getSourceInfo, downloadAudio } from "@/lib/worker/source";
 import { probeAudio } from "@/lib/worker/probe";
 import { convertToOgg } from "@/lib/worker/convert";
@@ -33,14 +32,6 @@ class JobCancelledError extends Error {
   constructor() {
     super("Job was cancelled by user.");
     this.name = "JobCancelledError";
-  }
-}
-
-function parseJson<T>(text: string): T | null {
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    return null;
   }
 }
 

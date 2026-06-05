@@ -2,7 +2,7 @@
 
 import { Fragment, useMemo, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BarChart3, Copy, Download, ExternalLink, FileJson, FileSpreadsheet, Gauge, Music, RotateCcw, Search, Terminal, Trash2, Volume2, ChevronDown, ChevronRight } from "lucide-react";
+import { BarChart3, Copy, Download, ExternalLink, FileJson, FileSpreadsheet, RotateCcw, Search, Terminal, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { JobLogDialog } from "@/components/queue/job-log-dialog";
 import { StatusBadge } from "@/components/queue/status-badge";
@@ -22,11 +22,9 @@ import {
 import { ActionIconButton } from "@/components/shared/action-icon-button";
 import { JobAudioMeta, JobOutputDiagnostics } from "@/components/jobs/job-audio-meta";
 import { JobTitleBlock } from "@/components/jobs/job-title-block";
-import { AUDIO_SAFETY_MODE_LABELS, formatHeadroomDb, formatTargetLufs } from "@/lib/audio/options";
 import type { CredentialView } from "@/lib/credentials/types";
 import { deleteJobRequest, fetchJobLogs, retryJobRequest } from "@/lib/jobs/client";
 import type { JobLogView, JobView } from "@/lib/jobs/types";
-import { formatBytes, formatDb, formatDuration, formatSpeed } from "@/lib/utils";
 
 function outputDownloadHref(outputPath: string) {
   const cleaned = outputPath.replace(/^outputs\//, "");
@@ -68,29 +66,6 @@ function relativeDate(iso: string): string {
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
   return new Date(iso).toLocaleDateString();
-}
-
-function AudioMetaCompact({ job }: { job: JobView }) {
-  return (
-    <div className="flex flex-wrap gap-x-2 gap-y-1 text-[11px] text-zinc-500">
-      <span className="inline-flex items-center gap-1">
-        <BarChart3 className="size-3 text-zinc-600" />
-        {formatSpeed(job.speed)}
-      </span>
-      <span className="inline-flex items-center gap-1">
-        <Volume2 className="size-3 text-zinc-600" />
-        {formatDb(job.amplifyDb)}
-      </span>
-      <span className="inline-flex items-center gap-1">
-        <Music className="size-3 text-zinc-600" />
-        {job.quality.toUpperCase()}
-      </span>
-      <span className="inline-flex items-center gap-1">
-        {job.limiterEnabled ? <Gauge className="size-3 text-emerald-500" /> : <span className="text-zinc-600"><Volume2 className="size-3" /></span>}
-        {job.limiterEnabled ? `${formatTargetLufs(job.targetLufs)} · ${formatHeadroomDb(job.headroomDb)}` : "Limiter off"}
-      </span>
-    </div>
-  );
 }
 
 export function HistoryClient({ jobs, credentials }: { jobs: JobView[]; credentials: CredentialView[] }) {

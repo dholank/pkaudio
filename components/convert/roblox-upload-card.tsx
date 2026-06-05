@@ -79,7 +79,7 @@ export function RobloxUploadCard({
         <div className="lg:col-span-3 rounded-xl border border-emerald-500/15 bg-emerald-500/8 px-3 py-3 text-xs leading-5 text-emerald-100/85">
           <div className="flex gap-2">
             <ShieldCheck className="mt-0.5 size-4 shrink-0" />
-            <span>Keys encrypted with AES-256-GCM. Worker decrypts in memory only. Description: "Uploaded By PK Audio".</span>
+            <span>Keys encrypted with AES-256-GCM. Worker decrypts in memory only. Description: &quot;Uploaded By PK Audio&quot;.</span>
           </div>
         </div>
       </CardContent>

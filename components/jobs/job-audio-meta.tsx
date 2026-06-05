@@ -1,7 +1,7 @@
 "use client";
 
-import { BarChart3, Gauge, Music, Volume2 } from "lucide-react";
-import { formatHeadroomDb, formatTargetLufs } from "@/lib/audio/options";
+import { BarChart3, Gauge, KeyRound, Music, Volume2 } from "lucide-react";
+import { AUDIO_SAFETY_MODE_LABELS, formatHeadroomDb, formatTargetLufs } from "@/lib/audio/options";
 import { formatBytes, formatDb, formatDuration, formatSpeed } from "@/lib/utils";
 import type { JobView } from "@/lib/jobs/types";
 
@@ -17,7 +17,7 @@ export function JobAudioMeta({
   job,
   compact = true,
 }: {
-  job: Pick<JobView, "speed" | "amplifyDb" | "quality" | "limiterEnabled" | "targetLufs" | "headroomDb" | "audioSafetyMode" | "attemptCount" | "maxAttempts">;
+  job: Pick<JobView, "speed" | "amplifyDb" | "quality" | "limiterEnabled" | "targetLufs" | "headroomDb" | "audioSafetyMode" | "attemptCount" | "maxAttempts"> & Partial<Pick<JobView, "credentialName" | "outputPath">>;
   compact?: boolean;
 }) {
   if (compact) {
@@ -51,7 +51,7 @@ export function JobAudioMeta({
       <span>•</span>
       <span>{job.quality.toUpperCase()}</span>
       <span>•</span>
-      <span>{job.audioSafetyMode}</span>
+      <span>{AUDIO_SAFETY_MODE_LABELS[job.audioSafetyMode]}</span>
       <span>•</span>
       <span>Attempt {job.attemptCount}/{job.maxAttempts}</span>
       <span>•</span>
@@ -60,6 +60,18 @@ export function JobAudioMeta({
           ? `${formatTargetLufs(job.targetLufs)} → peak ≤ ${formatHeadroomDb(job.headroomDb)}`
           : "Limiter OFF"}
       </span>
+      {job.credentialName ? (
+        <>
+          <span>•</span>
+          <span className="inline-flex items-center gap-1"><KeyRound className="size-3" />{job.credentialName}</span>
+        </>
+      ) : null}
+      {job.outputPath ? (
+        <>
+          <span>•</span>
+          <span className="break-all font-mono">{job.outputPath}</span>
+        </>
+      ) : null}
     </div>
   );
 }

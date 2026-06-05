@@ -29,6 +29,7 @@ import type { CredentialView } from "@/lib/credentials/types";
 import type { AppSettingsView, CleanupRetention, CleanupTarget } from "@/lib/settings/types";
 
 function toNumber(value: string, fallback: number) {
+  if (value === "" || value === "-") return NaN;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
@@ -127,7 +128,7 @@ export function SettingsDefaultsCard({
                 max={3}
                 step={0.01}
                 value={settings.defaultSpeed}
-                onChange={(event) => patchLocal({ defaultSpeed: toNumber(event.target.value, settings.defaultSpeed) })}
+                onChange={(event) => { const n = toNumber(event.target.value, settings.defaultSpeed); if (Number.isFinite(n)) patchLocal({ defaultSpeed: n }); }}
                 className="font-mono"
               />
             </div>
@@ -139,7 +140,7 @@ export function SettingsDefaultsCard({
                 max={12}
                 step={0.5}
                 value={settings.defaultAmplifyDb}
-                onChange={(event) => patchLocal({ defaultAmplifyDb: toNumber(event.target.value, settings.defaultAmplifyDb) })}
+                onChange={(event) => { const n = toNumber(event.target.value, settings.defaultAmplifyDb); if (Number.isFinite(n)) patchLocal({ defaultAmplifyDb: n }); }}
                 className="font-mono"
               />
             </div>
@@ -177,7 +178,7 @@ export function SettingsDefaultsCard({
                 max={MAX_HEADROOM_DB}
                 step={0.5}
                 value={settings.defaultHeadroomDb}
-                onChange={(event) => patchLocal({ defaultHeadroomDb: toNumber(event.target.value, settings.defaultHeadroomDb), defaultAudioSafetyMode: "custom" })}
+                onChange={(event) => { const n = toNumber(event.target.value, settings.defaultHeadroomDb); if (Number.isFinite(n)) patchLocal({ defaultHeadroomDb: n, defaultAudioSafetyMode: "custom" }); }}
                 className="font-mono"
                 disabled={!settings.defaultLimiterEnabled}
               />
@@ -192,7 +193,7 @@ export function SettingsDefaultsCard({
                 max={MAX_TARGET_LUFS}
                 step={0.5}
                 value={settings.defaultTargetLufs}
-                onChange={(event) => patchLocal({ defaultTargetLufs: toNumber(event.target.value, settings.defaultTargetLufs), defaultAudioSafetyMode: "custom" })}
+                onChange={(event) => { const n = toNumber(event.target.value, settings.defaultTargetLufs); if (Number.isFinite(n)) patchLocal({ defaultTargetLufs: n, defaultAudioSafetyMode: "custom" }); }}
                 className="font-mono"
                 disabled={!settings.defaultLimiterEnabled}
               />
@@ -279,7 +280,7 @@ export function SettingsDefaultsCard({
                 max={4}
                 step={1}
                 value={settings.maxConcurrentJobs}
-                onChange={(event) => patchLocal({ maxConcurrentJobs: Math.round(toNumber(event.target.value, settings.maxConcurrentJobs)) })}
+                onChange={(event) => { const n = toNumber(event.target.value, settings.maxConcurrentJobs); const r = Math.round(n); if (Number.isFinite(r)) patchLocal({ maxConcurrentJobs: r }); }}
                 className="font-mono"
               />
             </div>
@@ -291,7 +292,7 @@ export function SettingsDefaultsCard({
                 max={10}
                 step={1}
                 value={settings.retryCount}
-                onChange={(event) => patchLocal({ retryCount: Math.round(toNumber(event.target.value, settings.retryCount)) })}
+                onChange={(event) => { const n = toNumber(event.target.value, settings.retryCount); const r = Math.round(n); if (Number.isFinite(r)) patchLocal({ retryCount: r }); }}
                 className="font-mono"
               />
             </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import type { AnchorHTMLAttributes } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -9,6 +10,8 @@ type ActionIconButtonProps = {
   label: string;
   onClick?: () => void;
   href?: string;
+  target?: AnchorHTMLAttributes<HTMLAnchorElement>["target"];
+  rel?: string;
   disabled?: boolean;
   tone?: "default" | "danger";
   tooltipSide?: "top" | "bottom" | "left" | "right";
@@ -28,11 +31,16 @@ export function ActionIconButton({
   label,
   onClick,
   href,
+  target,
+  rel,
   disabled = false,
   tone = "default",
   tooltipSide = "top",
 }: ActionIconButtonProps) {
   const isDanger = tone === "danger";
+  const isExternal = href?.startsWith("http://") || href?.startsWith("https://");
+  const linkTarget = target ?? (isExternal ? "_blank" : undefined);
+  const linkRel = rel ?? (linkTarget === "_blank" ? "noreferrer" : undefined);
 
   const sharedProps = {
     variant: "outline" as const,
@@ -51,7 +59,7 @@ export function ActionIconButton({
       <TooltipTrigger asChild>
         {href ? (
           <Button {...sharedProps} asChild>
-            <a href={href} aria-label={label}>
+            <a href={href} target={linkTarget} rel={linkRel} aria-label={label}>
               <Icon className="size-4" />
             </a>
           </Button>

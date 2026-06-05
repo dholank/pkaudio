@@ -98,7 +98,7 @@ export function AutoCutClient({
 
   return (
     <div className="space-y-6">
-      <PresetToolbar settings={b} />
+      <PresetToolbar settings={b} showNameInput />
 
       {/* Source URL */}
       <Card>
@@ -171,7 +171,7 @@ export function AutoCutClient({
 
       <RecentQueueCard
         jobs={recentJobs}
-        workerHint='Parts queue as normal jobs. Run <span class="font-mono text-zinc-300">npm run worker</span> to convert & upload.'
+        workerHint={<>Parts queue as normal jobs. Run <span className="font-mono text-zinc-300">npm run worker</span> to convert & upload.</>}
         emptyTitle="No trim jobs yet"
         emptyDescription="Paste a YouTube URL, analyze & cut, then convert parts to start."
       />

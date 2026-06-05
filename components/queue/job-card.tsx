@@ -1,22 +1,15 @@
 "use client";
 
 import {
-  BarChart3, Copy, Download, ExternalLink, FileAudio2, Gauge, KeyRound, Music, RotateCcw, ShieldCheck, Terminal, Trash2, Volume2, XCircle,
+  Copy, Download, ExternalLink, FileAudio2, RotateCcw, ShieldCheck, Terminal, Trash2, XCircle,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ActionIconButton } from "@/components/shared/action-icon-button";
-import { JobAudioMeta, JobOutputDiagnostics } from "@/components/jobs/job-audio-meta";
+import { JobAudioMeta } from "@/components/jobs/job-audio-meta";
 import { JobTitleBlock } from "@/components/jobs/job-title-block";
 import { AudioPreviewDiagnostics } from "@/components/queue/audio-preview-diagnostics";
-import { StatusBadge } from "@/components/queue/status-badge";
-import {
-  AUDIO_SAFETY_MODE_LABELS,
-  formatHeadroomDb,
-  formatTargetLufs,
-} from "@/lib/audio/options";
-import { formatDb, formatSpeed } from "@/lib/utils";
 import type { JobView } from "@/lib/jobs/types";
 
 function outputDownloadHref(outputPath: string) {
@@ -30,36 +23,6 @@ async function copyText(value: string) {
 }
 
 const deletableStatuses = new Set(["queued", "converted", "done", "failed", "cancelled"]);
-
-function FullMeta({ job }: { job: JobView }) {
-  return (
-    <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 text-xs leading-5 text-zinc-500">
-      <span>{formatSpeed(job.speed)}</span>
-      <span>•</span>
-      <span>gain {formatDb(job.amplifyDb)}</span>
-      <span>•</span>
-      <span>{job.quality.toUpperCase()}</span>
-      <span>•</span>
-      <span>{AUDIO_SAFETY_MODE_LABELS[job.audioSafetyMode]}</span>
-      <span>•</span>
-      <span>Attempt {job.attemptCount}/{job.maxAttempts}</span>
-      <span>•</span>
-      <span>{job.limiterEnabled ? `${formatTargetLufs(job.targetLufs)} → peak ≤ ${formatHeadroomDb(job.headroomDb)}` : "Limiter OFF"}</span>
-      {job.credentialName ? (
-        <>
-          <span>•</span>
-          <span className="inline-flex items-center gap-1"><KeyRound className="size-3" />{job.credentialName}</span>
-        </>
-      ) : null}
-      {job.outputPath ? (
-        <>
-          <span>•</span>
-          <span className="break-all font-mono">{job.outputPath}</span>
-        </>
-      ) : null}
-    </div>
-  );
-}
 
 export function JobCard({
   job,
@@ -103,7 +66,7 @@ export function JobCard({
 
           {/* Metadata */}
           <div className="mt-2">
-            {compact ? <JobAudioMeta job={job} compact /> : <FullMeta job={job} />}
+            <JobAudioMeta job={job} compact={compact} />
           </div>
 
           {/* Error */}

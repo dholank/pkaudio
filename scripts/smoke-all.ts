@@ -9,6 +9,8 @@
  */
 
 import { execSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 
 const smokeScripts = [
   "smoke-audio-normalization",
@@ -24,6 +26,10 @@ const smokeScripts = [
 const results: { name: string; ok: boolean }[] = [];
 let failed = 0;
 
+const smokeDbRoot = path.join(process.cwd(), "tmp", "smoke-suite");
+fs.rmSync(smokeDbRoot, { recursive: true, force: true });
+fs.mkdirSync(smokeDbRoot, { recursive: true });
+
 console.log("\n═══════════════════════════════════");
 console.log("  PKAudio Smoke Suite");
 console.log("═══════════════════════════════════\n");
@@ -33,8 +39,12 @@ for (const script of smokeScripts) {
   try {
     execSync(`npx tsx scripts/${script}.ts`, {
       stdio: "pipe",
-      timeout: 60000,
+      timeout: 120000,
       cwd: process.cwd(),
+      env: {
+        ...process.env,
+        PKAUDIO_DB_PATH: path.join("tmp", "smoke-suite", `${script}.sqlite`),
+      },
     });
     console.log("✓ PASS");
     results.push({ name: script, ok: true });

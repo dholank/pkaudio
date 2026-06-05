@@ -87,7 +87,9 @@ function formFromPreset(preset: AudioPresetView): FormState {
 }
 
 function toNumber(value: string, fallback: number) {
-  const parsed = Number(value);
+  const trimmed = value.trim();
+  if (trimmed === "" || trimmed === "-" || trimmed === "--") return NaN;
+  const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
@@ -237,15 +239,15 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
             </div>
             <div className="space-y-2">
               <Label>Speed</Label>
-              <Input type="number" min={0.5} max={3} step={0.01} value={form.speed} onChange={(event) => patchForm({ speed: toNumber(event.target.value, form.speed) })} />
+              <Input type="number" min={0.5} max={3} step={0.01} value={form.speed} onChange={(event) => { const n = toNumber(event.target.value, form.speed); if (Number.isFinite(n)) patchForm({ speed: n }); }} />
             </div>
             <div className="space-y-2">
               <Label>Gain trim dB</Label>
-              <Input type="number" min={-12} max={12} step={0.5} value={form.amplifyDb} onChange={(event) => patchForm({ amplifyDb: toNumber(event.target.value, form.amplifyDb), audioSafetyMode: "custom" })} />
+              <Input type="number" min={-12} max={12} step={0.5} value={form.amplifyDb} onChange={(event) => { const n = toNumber(event.target.value, form.amplifyDb); if (Number.isFinite(n)) patchForm({ amplifyDb: n, audioSafetyMode: "custom" }); }} />
             </div>
             <div className="space-y-2">
               <Label>Target loudness</Label>
-              <Input type="number" min={MIN_TARGET_LUFS} max={MAX_TARGET_LUFS} step={0.5} value={form.targetLufs} disabled={!form.limiterEnabled} onChange={(event) => patchForm({ targetLufs: toNumber(event.target.value, form.targetLufs), audioSafetyMode: "custom" })} />
+              <Input type="number" min={MIN_TARGET_LUFS} max={MAX_TARGET_LUFS} step={0.5} value={form.targetLufs} disabled={!form.limiterEnabled} onChange={(event) => { const n = toNumber(event.target.value, form.targetLufs); if (Number.isFinite(n)) patchForm({ targetLufs: n, audioSafetyMode: "custom" }); }} />
               <p className="text-xs text-zinc-500">LUFS normalization target.</p>
             </div>
             <div className="space-y-2">
@@ -274,7 +276,7 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
             </div>
             <div className="space-y-2">
               <Label>Peak limit</Label>
-              <Input type="number" min={MIN_HEADROOM_DB} max={MAX_HEADROOM_DB} step={0.5} value={form.headroomDb} disabled={!form.limiterEnabled} onChange={(event) => patchForm({ headroomDb: toNumber(event.target.value, form.headroomDb), audioSafetyMode: "custom" })} />
+              <Input type="number" min={MIN_HEADROOM_DB} max={MAX_HEADROOM_DB} step={0.5} value={form.headroomDb} disabled={!form.limiterEnabled} onChange={(event) => { const n = toNumber(event.target.value, form.headroomDb); if (Number.isFinite(n)) patchForm({ headroomDb: n, audioSafetyMode: "custom" }); }} />
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label>Roblox title pattern</Label>

@@ -1,5 +1,5 @@
 "use client";
-
+import { useState, useCallback } from "react";
 import { AlertTriangle, Gauge, ShieldCheck, SlidersHorizontal, Volume2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -86,6 +86,28 @@ export function AudioSettingsCard({
   onLimiterChange: (value: boolean) => void;
 }) {
   const warnings = buildInputWarnings({ amplifyDb, limiterEnabled, headroomDb, targetLufs, speed });
+  const [speedDisplay, setSpeedDisplay] = useState(() => String(speed));
+  const [gainDisplay, setGainDisplay] = useState(() => String(amplifyDb));
+
+  const commitSpeed = useCallback((raw: string) => {
+    const num = Number(raw);
+    if (Number.isFinite(num)) {
+      setSpeedDisplay(String(num));
+      onSpeedChange(num);
+    } else {
+      setSpeedDisplay(String(speed));
+    }
+  }, [speed, onSpeedChange]);
+
+  const commitGain = useCallback((raw: string) => {
+    const num = Number(raw);
+    if (Number.isFinite(num)) {
+      setGainDisplay(String(num));
+      onAmplifyChange(num);
+    } else {
+      setGainDisplay(String(amplifyDb));
+    }
+  }, [amplifyDb, onAmplifyChange]);
 
   return (
     <Card>
@@ -126,12 +148,12 @@ export function AudioSettingsCard({
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-4">
             <Label>Speed</Label>
-            <Input type="number" min={0.5} max={3} step={0.01} value={speed} onChange={(event) => onSpeedChange(Number(event.target.value))} className="h-9 w-24 font-mono" />
+            <Input type="number" min={0.5} max={3} step={0.01} value={speedDisplay} onChange={(event) => setSpeedDisplay(event.target.value)} onBlur={(event) => commitSpeed(event.target.value)} className="h-9 w-24 font-mono" />
           </div>
-          <Slider min={0.5} max={3} step={0.01} value={[speed]} onValueChange={([value]) => onSpeedChange(value)} />
+          <Slider min={0.5} max={3} step={0.01} value={[speed]} onValueChange={([value]) => { setSpeedDisplay(String(value)); onSpeedChange(value); }} />
           <div className="flex flex-wrap gap-2">
             {[1, 1.25, 1.5, 2, 2.3].map((preset) => (
-              <button key={preset} onClick={() => onSpeedChange(preset)} className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-zinc-400 transition hover:bg-white/[0.06] hover:text-white">
+              <button key={preset} onClick={() => { setSpeedDisplay(String(preset)); onSpeedChange(preset); }} className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-zinc-400 transition hover:bg-white/[0.06] hover:text-white">
                 {formatSpeed(preset)}
               </button>
             ))}
@@ -144,12 +166,12 @@ export function AudioSettingsCard({
               <Label className="flex items-center gap-2"><Volume2 className="size-4 text-cyan-300" /> Gain trim</Label>
               <p className="mt-1 text-xs text-zinc-500">Extra gain after LUFS; limiter still catches peaks.</p>
             </div>
-            <Input type="number" min={-12} max={12} step={0.5} value={amplifyDb} onChange={(event) => onAmplifyChange(Number(event.target.value))} className="h-9 w-24 font-mono" />
+            <Input type="number" min={-12} max={12} step={0.5} value={gainDisplay} onChange={(event) => setGainDisplay(event.target.value)} onBlur={(event) => commitGain(event.target.value)} className="h-9 w-24 font-mono" />
           </div>
-          <Slider min={-12} max={12} step={0.5} value={[amplifyDb]} onValueChange={([value]) => onAmplifyChange(value)} />
+          <Slider min={-12} max={12} step={0.5} value={[amplifyDb]} onValueChange={([value]) => { setGainDisplay(String(value)); onAmplifyChange(value); }} />
           <div className="flex flex-wrap gap-2">
             {[-3, 0, 3, 6].map((preset) => (
-              <button key={preset} onClick={() => onAmplifyChange(preset)} className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-zinc-400 transition hover:bg-white/[0.06] hover:text-white">
+              <button key={preset} onClick={() => { setGainDisplay(String(preset)); onAmplifyChange(preset); }} className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-zinc-400 transition hover:bg-white/[0.06] hover:text-white">
                 {formatDb(preset)}
               </button>
             ))}

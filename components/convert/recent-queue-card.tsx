@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { History, ListMusic } from "lucide-react";
+import type { ReactNode } from "react";
+import { ListMusic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { JobCard } from "@/components/queue/job-card";
@@ -10,7 +11,7 @@ import type { JobView } from "@/lib/jobs/types";
 
 type RecentQueueCardProps = {
   jobs: JobView[];
-  workerHint?: string;
+  workerHint?: ReactNode;
   emptyTitle?: string;
   emptyDescription?: string;
 };
@@ -21,7 +22,7 @@ type RecentQueueCardProps = {
  */
 export function RecentQueueCard({
   jobs,
-  workerHint = "Run <span class=\"font-mono text-zinc-300\">npm run worker</span> to convert & upload.",
+  workerHint = <>Run <span className="font-mono text-zinc-300">npm run worker</span> to convert & upload.</>,
   emptyTitle = "No active jobs",
   emptyDescription = "Paste a YouTube or SoundCloud URL to start converting audio for Roblox.",
 }: RecentQueueCardProps) {
