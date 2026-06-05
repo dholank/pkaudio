@@ -76,15 +76,13 @@ function StatusChip({ item }: { item: QueueStatusItem }) {
 export function QueueAudioCard({
   job,
   onLogs,
-  onCopyAssetId,
-  onCopyTitleAsset,
+  onCopyCode,
   onAuditRoblox,
   onCheckRobloxModeration,
 }: {
   job: JobView;
   onLogs?: (job: JobView) => void;
-  onCopyAssetId?: (job: JobView) => void;
-  onCopyTitleAsset?: (job: JobView) => void;
+  onCopyCode?: (job: JobView) => void;
   onAuditRoblox?: (job: JobView) => void;
   onCheckRobloxModeration?: (job: JobView) => void;
 }) {
@@ -134,7 +132,7 @@ export function QueueAudioCard({
               <Info className="size-3.5 text-zinc-500" />
             </div>
             {job.assetId ? (
-              <button className="break-all rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 font-mono text-xs text-cyan-200 transition hover:bg-cyan-500/15" onClick={() => onCopyAssetId?.(job)}>
+              <button className="break-all rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 font-mono text-xs text-cyan-200 transition hover:bg-cyan-500/15" onClick={() => onCopyCode?.(job)}>
                 {assetUri(job.assetId)}
               </button>
             ) : null}
@@ -159,8 +157,7 @@ export function QueueAudioCard({
 
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 [&>a]:h-8 [&>button]:h-8">
         <Button variant="outline" size="sm" onClick={() => onLogs?.(job)}><Terminal /> Logs</Button>
-        {job.assetId ? <Button variant="outline" size="sm" onClick={() => onCopyAssetId?.(job)}><Copy /> Copy Code</Button> : null}
-        {job.assetId ? <Button variant="outline" size="sm" onClick={() => onCopyTitleAsset?.(job)}><Copy /> Title + Code</Button> : null}
+        {job.assetId ? <Button variant="outline" size="sm" onClick={() => onCopyCode?.(job)}><Copy /> Copy Code</Button> : null}
         {canCheckRoblox ? <Button variant="outline" size="sm" onClick={() => onAuditRoblox?.(job)}><ShieldCheck /> Roblox</Button> : null}
         {canCheckModeration ? <Button variant="outline" size="sm" onClick={() => onCheckRobloxModeration?.(job)}><ShieldCheck /> Moderation</Button> : null}
         {job.assetId ? <Button variant="outline" size="sm" asChild><a href={`https://create.roblox.com/store/asset/${job.assetId}`} target="_blank" rel="noreferrer"><ExternalLink /> Asset</a></Button> : null}

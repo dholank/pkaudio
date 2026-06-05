@@ -144,35 +144,17 @@ export function QueueClient({
     }
   }
 
-  async function copyAssetId(job: JobView) {
+  async function copyCode(job: JobView) {
     if (!job.assetId) return;
     await copyText(robloxAudioCode(job), "Roblox audio code");
   }
 
-  async function copyTitleAsset(job: JobView) {
-    if (!job.assetId) return;
-    await copyText(robloxAudioCode(job), "Roblox audio code");
-  }
-
-  async function copyAllAssetIds() {
+  async function copyAllCodes() {
     if (!uploadedJobs.length) {
       toast.error("No uploaded audio code lines in the latest queue yet.");
       return;
     }
     await copyText(uploadedJobs.map(robloxAudioCode).join("\n"), `${uploadedJobs.length} Roblox audio code line${uploadedJobs.length === 1 ? "" : "s"}`);
-    const skipped = jobs.length - uploadedJobs.length;
-    if (skipped > 0) toast.info(`${skipped} latest queue item${skipped === 1 ? "" : "s"} skipped because upload is not done yet.`);
-  }
-
-  async function copyAllTitleAssets() {
-    if (!uploadedJobs.length) {
-      toast.error("No uploaded audio code lines in the latest queue yet.");
-      return;
-    }
-    await copyText(
-      uploadedJobs.map(robloxAudioCode).join("\n"),
-      `${uploadedJobs.length} Roblox audio code line${uploadedJobs.length === 1 ? "" : "s"}`,
-    );
     const skipped = jobs.length - uploadedJobs.length;
     if (skipped > 0) toast.info(`${skipped} latest queue item${skipped === 1 ? "" : "s"} skipped because upload is not done yet.`);
   }
@@ -195,8 +177,7 @@ export function QueueClient({
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => void copyAllAssetIds()} disabled={!uploadedJobs.length}><Copy /> Copy code</Button>
-            <Button onClick={() => void copyAllTitleAssets()} disabled={!uploadedJobs.length}><Copy /> Copy title</Button>
+            <Button variant="outline" onClick={() => void copyAllCodes()} disabled={!uploadedJobs.length}><Copy /> Copy code</Button>
             <Button variant="ghost" asChild><Link href="/history"><History /> History</Link></Button>
           </div>
         </CardContent>
@@ -256,8 +237,7 @@ export function QueueClient({
               key={job.id}
               job={job}
               onLogs={handleLogs}
-              onCopyAssetId={copyAssetId}
-              onCopyTitleAsset={copyTitleAsset}
+              onCopyCode={copyCode}
               onAuditRoblox={handleAuditRoblox}
               onCheckRobloxModeration={handleCheckRobloxModeration}
             />
