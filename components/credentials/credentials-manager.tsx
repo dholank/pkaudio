@@ -65,10 +65,10 @@ export function CredentialsManager({ initialCredentials }: { initialCredentials:
     <div className="space-y-6">
       <Card className="border-emerald-500/15 bg-emerald-500/8">
         <CardContent className="flex gap-3 p-5">
-          <ShieldCheck className="mt-0.5 size-5 shrink-0 text-white" />
+          <ShieldCheck className="mt-0.5 size-5 shrink-0 text-emerald-300" />
           <div>
             <p className="font-medium text-emerald-100">Encrypted local storage</p>
-            <p className="mt-1 text-sm leading-6 text-[#bbbbbb]">
+            <p className="mt-1 text-sm leading-6 text-emerald-100/75">
               Keys encrypted with AES-256-GCM. Worker decrypts in memory only during upload.
             </p>
           </div>

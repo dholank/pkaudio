@@ -126,7 +126,7 @@ export function BackupRestoreCard({ initialBackups }: { initialBackups: BackupSu
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><DatabaseBackup className="size-4 text-white" /> Backup & Restore</CardTitle>
+        <CardTitle className="flex items-center gap-2"><DatabaseBackup className="size-4 text-emerald-300" /> Backup & Restore</CardTitle>
         <CardDescription>Local SQLite backup with optional outputs archive. Backups are saved under <span className="font-mono">backups/</span>.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -189,7 +189,7 @@ export function BackupRestoreCard({ initialBackups }: { initialBackups: BackupSu
                 <div className="flex flex-wrap gap-2">
                   {backup.exists ? <Button variant="outline" size="sm" asChild><a href={backupDownloadHref(backup.id)}><Download /> Download</a></Button> : null}
                   {backup.exists ? <Button variant="outline" size="sm" onClick={() => void restoreBackup(backup)} disabled={loading}><RotateCcw /> Restore</Button> : null}
-                  <Button variant="ghost" size="sm" className="text-[#e22718] hover:text-white" onClick={() => void deleteBackup(backup)} disabled={loading}><Trash2 /> Delete</Button>
+                  <Button variant="ghost" size="sm" className="text-rose-200 hover:text-rose-100" onClick={() => void deleteBackup(backup)} disabled={loading}><Trash2 /> Delete</Button>
                 </div>
               </div>
             </div>

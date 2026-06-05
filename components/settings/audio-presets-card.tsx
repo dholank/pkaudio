@@ -187,7 +187,7 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
     <Card>
       <CardHeader className="flex flex-col gap-3 space-y-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="min-w-0">
-          <CardTitle className="flex items-center gap-2"><Star className="size-4 text-white" /> Audio Presets</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Star className="size-4 text-cyan-300" /> Audio Presets</CardTitle>
           <CardDescription>Save reusable speed, gain trim, LUFS target, peak limit, quality, and upload combinations for Convert.</CardDescription>
         </div>
         <Button className="w-full sm:w-auto" variant="outline" size="sm" onClick={openCreate}><Plus /> New preset</Button>
@@ -211,7 +211,7 @@ export function AudioPresetsCard({ initialPresets, credentials }: { initialPrese
               <div className="flex flex-wrap gap-2 [&>button]:w-full sm:[&>button]:w-auto">
                 {!preset.isDefault ? <Button variant="ghost" size="sm" onClick={() => void makeDefault(preset)}><Star /> Default</Button> : null}
                 <Button variant="outline" size="sm" onClick={() => openEdit(preset)}>Edit</Button>
-                <Button variant="ghost" size="sm" className="text-[#e22718] hover:text-white" onClick={() => void deletePreset(preset)}><Trash2 /> Delete</Button>
+                <Button variant="ghost" size="sm" className="text-rose-200 hover:text-rose-100" onClick={() => void deletePreset(preset)}><Trash2 /> Delete</Button>
               </div>
             </div>
           </div>

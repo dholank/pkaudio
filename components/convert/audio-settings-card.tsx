@@ -113,14 +113,14 @@ export function AudioSettingsCard({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Gauge className="size-4 text-white" /> Audio Output
+          <Gauge className="size-4 text-violet-300" /> Audio Output
         </CardTitle>
         <CardDescription>Speed, LUFS, gain, limiter, safety, OGG quality.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label className="flex items-center gap-2"><SlidersHorizontal className="size-4 text-white/60" /> Safety mode</Label>
+            <Label className="flex items-center gap-2"><SlidersHorizontal className="size-4 text-violet-300" /> Safety mode</Label>
             <Select value={audioSafetyMode} onValueChange={(value) => onAudioSafetyModeChange(value as AudioSafetyMode)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -163,7 +163,7 @@ export function AudioSettingsCard({
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <Label className="flex items-center gap-2"><Volume2 className="size-4 text-white" /> Gain trim</Label>
+              <Label className="flex items-center gap-2"><Volume2 className="size-4 text-cyan-300" /> Gain trim</Label>
               <p className="mt-1 text-xs text-zinc-500">Extra gain after LUFS; limiter still catches peaks.</p>
             </div>
             <Input type="number" min={-12} max={12} step={0.5} value={gainDisplay} onChange={(event) => setGainDisplay(event.target.value)} onBlur={(event) => commitGain(event.target.value)} className="h-9 w-24 font-mono" />
@@ -182,7 +182,7 @@ export function AudioSettingsCard({
           <div className="min-w-0 space-y-3 rounded-xl border border-white/10 bg-white/[0.035] p-3">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <Label className="flex flex-wrap items-center gap-2 leading-5"><ShieldCheck className="size-4 shrink-0 text-white" /> Limiter + normalize</Label>
+                <Label className="flex flex-wrap items-center gap-2 leading-5"><ShieldCheck className="size-4 shrink-0 text-emerald-300" /> Limiter + normalize</Label>
                 <p className="mt-1 text-xs text-zinc-500">Two-pass LUFS normalization + peak limiter.</p>
               </div>
               <Switch className="mt-0.5 shrink-0" checked={limiterEnabled} onCheckedChange={onLimiterChange} />
@@ -209,14 +209,14 @@ export function AudioSettingsCard({
         {warnings.length ? (
           <div className="space-y-2">
             {warnings.map((warning) => (
-              <div key={warning.message} className={warning.level === "danger" ? "flex gap-2 rounded-xl border border-[#e22718]/30 bg-[#e22718]/10 px-3 py-2 text-sm text-[#e22718]" : "flex gap-2 rounded-xl border border-[#f4b400]/30 bg-[#f4b400]/10 px-3 py-2 text-sm text-[#f4b400]"}>
+              <div key={warning.message} className={warning.level === "danger" ? "flex gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-100" : "flex gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-sm text-amber-100"}>
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" /> {warning.message}
               </div>
             ))}
           </div>
         ) : null}
 
-        <div className="rounded-xl border border-[#3c3c3c] px-3 py-3 text-xs leading-5 text-[#bbbbbb]">
+        <div className="rounded-xl border border-cyan-500/15 bg-cyan-500/8 px-3 py-3 text-xs leading-5 text-cyan-100/85">
           Final output: OGG • 44.1kHz • Stereo • {quality.toUpperCase()} • {limiterEnabled ? `${formatTargetLufs(targetLufs)} → peak ≤ ${formatHeadroomDb(headroomDb)}` : "manual gain, limiter OFF"}.
         </div>
       </CardContent>

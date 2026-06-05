@@ -48,7 +48,7 @@ export function ActionIconButton({
     className: [
       "h-8 w-8 p-0 sm:w-auto sm:px-2.5",
       isDanger
-        ? "h-8 w-8 p-0 sm:w-auto sm:px-2.5 border-[#e22718] text-[#e22718] hover:bg-[#e22718] hover:text-white"
+        ? "border-rose-500/30 text-rose-300 hover:border-rose-400/50 hover:bg-rose-500/10"
         : "",
       disabled ? "pointer-events-none opacity-50" : "",
     ].filter(Boolean).join(" "),
