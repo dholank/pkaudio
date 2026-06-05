@@ -1,6 +1,7 @@
 import type { JobView } from "@/lib/jobs/types";
 
 export const DEFAULT_AUDIO_IMAGE_ID = "rbxassetid://131267688688616";
+export const DEFAULT_AUTO_CUT_AUDIO_IMAGE_ID = "rbxassetid://95717589436679";
 export const DEFAULT_AUDIO_PLAYBACK_SPEED = "0.43";
 
 export function assetUri(assetId: string) {
@@ -45,6 +46,28 @@ export function robloxAudioCode(job: JobView) {
     `\t\t\tSoundId = "${assetUri(job.assetId)}",`,
     `\t\t\tImageId = "${DEFAULT_AUDIO_IMAGE_ID}",`,
     `\t\t\tPlaybackSpeed = ${DEFAULT_AUDIO_PLAYBACK_SPEED},`,
+    "\t\t\t},",
+  ].join("\n");
+}
+
+function autoCutSongName(job: JobView) {
+  const title = job.title ?? "Untitled audio";
+  return title.replace(/\s+Part\s+\d+\/\d+$/i, "").trim() || title;
+}
+
+export function robloxAutoCutAudioCode(jobs: readonly JobView[]) {
+  const trimJobs = sortJobsForRobloxAudioCode(jobs.filter((job) => job.assetId && job.trimPartIndex !== null));
+  if (!trimJobs.length) return "";
+
+  const songName = autoCutSongName(trimJobs[0]);
+  return [
+    "\t\t\t{",
+    `\t\t\t\tSongName = "${luaString(songName)}",`,
+    "\t\t\t\tSoundIds = {",
+    ...trimJobs.map((job) => `\t\t\t\t\t"${assetUri(job.assetId!)}",`),
+    "\t\t\t\t},",
+    `\t\t\t\tImageId = "${DEFAULT_AUTO_CUT_AUDIO_IMAGE_ID}",`,
+    `\t\t\t\tPlaybackSpeed = ${DEFAULT_AUDIO_PLAYBACK_SPEED},`,
     "\t\t\t},",
   ].join("\n");
 }

@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { CredentialView } from "@/lib/credentials/types";
 import { auditRobloxJobRequest, checkRobloxModerationRequest, fetchJobLogs, fetchJobs } from "@/lib/jobs/client";
 import type { BatchView, JobLogView, JobView } from "@/lib/jobs/types";
-import { robloxAudioCode, sortJobsForRobloxAudioCode } from "@/lib/roblox/audio-code";
+import { robloxAudioCode, robloxAutoCutAudioCode, sortJobsForRobloxAudioCode } from "@/lib/roblox/audio-code";
 import type { WorkerHealthStatus } from "@/lib/worker/health";
 
 const liveStatuses = new Set(["queued", "downloading", "probing", "converting", "converted", "uploading"]);
@@ -72,6 +72,8 @@ export function QueueClient({
     [jobs],
   );
   const uploadedJobs = useMemo(() => sortJobsForRobloxAudioCode(jobs.filter((job) => job.assetId)), [jobs]);
+  const uploadedAutoCutJobs = useMemo(() => sortJobsForRobloxAudioCode(uploadedJobs.filter((job) => job.trimPartIndex !== null)), [uploadedJobs]);
+  const hasAutoCutUpload = uploadedAutoCutJobs.length > 0;
   const filteredJobs = useMemo(() => {
     const q = query.trim().toLowerCase();
     return jobs.filter((job) => {
@@ -159,6 +161,16 @@ export function QueueClient({
     if (skipped > 0) toast.info(`${skipped} latest queue item${skipped === 1 ? "" : "s"} skipped because upload is not done yet.`);
   }
 
+  async function copyAutoCutCode() {
+    if (!uploadedAutoCutJobs.length) {
+      toast.error("No uploaded Auto Cut parts in the latest queue yet.");
+      return;
+    }
+    await copyText(robloxAutoCutAudioCode(uploadedAutoCutJobs), "Auto Cut Roblox audio code");
+    const skipped = jobs.filter((job) => job.trimPartIndex !== null).length - uploadedAutoCutJobs.length;
+    if (skipped > 0) toast.info(`${skipped} Auto Cut part${skipped === 1 ? "" : "s"} skipped because upload is not done yet.`);
+  }
+
   return (
     <div className="space-y-6">
       <WorkerStatusBanner initialStatus={initialWorkerStatus} />
@@ -178,6 +190,7 @@ export function QueueClient({
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => void copyAllCodes()} disabled={!uploadedJobs.length}><Copy /> Copy code</Button>
+            {hasAutoCutUpload ? <Button onClick={() => void copyAutoCutCode()} disabled={!uploadedAutoCutJobs.length}><Copy /> Copy Auto Cut</Button> : null}
             <Button variant="ghost" asChild><Link href="/history"><History /> History</Link></Button>
           </div>
         </CardContent>
