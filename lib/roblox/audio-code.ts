@@ -2,7 +2,8 @@ import type { JobView } from "@/lib/jobs/types";
 
 export const DEFAULT_AUDIO_IMAGE_ID = "rbxassetid://131267688688616";
 export const DEFAULT_AUTO_CUT_AUDIO_IMAGE_ID = "rbxassetid://95717589436679";
-export const DEFAULT_AUDIO_PLAYBACK_SPEED = "0.43";
+export const DEFAULT_MODULE_IMAGE_ID = "rbxassetid://117962161032308";
+export const DEFAULT_AUDIO_PLAYBACK_SPEED = "0.435";
 
 export function assetUri(assetId: string) {
   return `rbxassetid://${assetId}`;
@@ -70,4 +71,29 @@ export function robloxAutoCutAudioCode(jobs: readonly JobView[]) {
     `\t\t\t\tPlaybackSpeed = ${DEFAULT_AUDIO_PLAYBACK_SPEED},`,
     "\t\t\t},",
   ].join("\n");
+}
+
+export function robloxModuleCode(jobs: readonly JobView[]) {
+  const uploaded = sortJobsForRobloxAudioCode(jobs.filter((job) => job.assetId));
+  if (!uploaded.length) return "";
+
+  const lines: string[] = [];
+  lines.push("local module = {");
+  lines.push(`\t{`);
+  lines.push(`\t\tName = "PKAudio",`);
+  lines.push(`\t\tImage = "${DEFAULT_MODULE_IMAGE_ID}",`);
+  lines.push(`\t\tSongs = {`);
+
+  for (const job of uploaded) {
+    const name = job.title ?? "Untitled";
+    lines.push(`\t\t\t{ Id = ${job.assetId}, Name = "${luaString(name)}", PlaybackSpeed = ${DEFAULT_AUDIO_PLAYBACK_SPEED} },`);
+  }
+
+  lines.push(`\t\t},`);
+  lines.push(`\t},`);
+  lines.push("}");
+  lines.push("");
+  lines.push("return module");
+
+  return lines.join("\n");
 }
