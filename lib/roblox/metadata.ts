@@ -107,3 +107,8 @@ export function cleanRobloxAudioTitle(rawTitle: string | null | undefined) {
 
   return cleaned.slice(0, 50).trim() || FALLBACK_TITLE;
 }
+
+export function randomAudioName() {
+  const hex = Array.from({ length: 8 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+  return `Audio_${hex}`;
+}

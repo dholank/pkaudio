@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { addJobLog, failJob, updateJobProgress, type AudioDiagnosticsPatch } from "@/lib/jobs/repository";
 import type { JobView } from "@/lib/jobs/types";
-import { cleanRobloxAudioTitle, ROBLOX_AUDIO_DESCRIPTION } from "@/lib/roblox/metadata";
+import { randomAudioName, ROBLOX_AUDIO_DESCRIPTION } from "@/lib/roblox/metadata";
 import { renderAssetName, uploadRobloxAudioAsset } from "@/lib/roblox/upload";
 import { checkRobloxModerationJob } from "@/lib/worker/moderation";
 
@@ -46,9 +46,9 @@ export async function processRobloxUploadJob(job: JobView) {
     const outputPath = resolveOutputPath(job.outputPath);
     await assertOutputFile(outputPath);
 
-    const cleanTitle = cleanRobloxAudioTitle(job.title);
+    const randomName = randomAudioName();
     const displayName = renderAssetName(job.assetNamePattern, {
-      title: cleanTitle,
+      title: randomName,
       jobId: job.id,
       platform: job.sourcePlatform,
     });
@@ -56,8 +56,7 @@ export async function processRobloxUploadJob(job: JobView) {
 
     await updateJobProgress(job.id, { status: "uploading", progress: Math.max(job.progress, 92), error: null });
     await addJobLog(job.id, "Serial upload worker started Roblox Creator asset upload.");
-    await addJobLog(job.id, `Roblox clean title: ${cleanTitle}`);
-    await addJobLog(job.id, `Roblox display name: ${displayName}`);
+    await addJobLog(job.id, `Roblox display name: ${randomName}`);
     await addJobLog(job.id, `Roblox description: ${ROBLOX_AUDIO_DESCRIPTION}`);
 
     const result = await uploadRobloxAudioAsset({
