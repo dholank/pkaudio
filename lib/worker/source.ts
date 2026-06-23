@@ -49,7 +49,7 @@ export async function getSourceInfo(job: JobView) {
     return { title: path.basename(localPath, path.extname(localPath)) } satisfies YtdlpInfo;
   }
 
-  const { stdout } = await runCommand("yt-dlp", ["--dump-single-json", "--no-playlist", job.sourceUrl], {
+  const { stdout } = await runCommand("yt-dlp", ["--dump-single-json", "--no-playlist", "--no-update", "--js-runtimes", "node", job.sourceUrl], {
     timeout: 120000,
     maxBuffer: 1024 * 1024 * 4,
   });
@@ -86,6 +86,8 @@ export async function downloadAudio(job: JobView, jobTmpDir: string) {
       "--extract-audio",
       "--audio-format", "wav",
       "--audio-quality", "0",
+      "--no-update",
+      "--js-runtimes", "node",
       "--output", outputTemplate,
       job.sourceUrl,
     ],

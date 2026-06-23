@@ -71,7 +71,7 @@ export function QueueClient({
     () => jobs.some((job) => Boolean(job.assetId) && pendingModerationStates.has(job.robloxModerationState)),
     [jobs],
   );
-  const uploadedJobs = useMemo(() => sortJobsForRobloxAudioCode(jobs.filter((job) => job.assetId)), [jobs]);
+  const uploadedJobs = useMemo(() => sortJobsForRobloxAudioCode(jobs.filter((job) => job.assetId && job.robloxModerationState === "approved")), [jobs]);
   const filteredJobs = useMemo(() => {
     const q = query.trim().toLowerCase();
     return jobs.filter((job) => {
