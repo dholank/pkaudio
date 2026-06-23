@@ -20,7 +20,7 @@ export const DEFAULT_SETTINGS = {
   defaultAssetNamePattern: "{title}",
   cleanupTarget: "temp" as const,
   cleanupRetention: "all" as const,
-  maxConcurrentJobs: 1,
+  maxConcurrentJobs: 2,
   retryCount: 2,
 };
 
