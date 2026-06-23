@@ -78,7 +78,7 @@ async function finalizeConvertedOutput(job: JobView, outputPath: string, title: 
   }
 
   await markJobConverted(job.id, relativeOutputPath, title, diagnostics);
-  await addJobLog(job.id, "Conversion worker finished. Serial upload worker will upload this OGG after the batch conversion gate clears.");
+  await addJobLog(job.id, "Conversion worker finished. Serial upload worker will upload this OGG when the upload lane is free.");
 }
 
 // ─── Main pipeline ───

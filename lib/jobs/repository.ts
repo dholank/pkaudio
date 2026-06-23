@@ -485,12 +485,6 @@ export async function claimNextConvertedUploadJob() {
           eq(jobs.uploadEnabled, true),
           sql`${jobs.outputPath} is not null`,
           sql`${jobs.assetId} is null`,
-          sql`not exists (
-            select 1
-            from jobs pending
-            where pending.batch_id = ${jobs.batchId}
-              and pending.status in ('queued', 'downloading', 'probing', 'converting')
-          )`,
         ),
       )
       .orderBy(asc(jobs.createdAt))
@@ -519,7 +513,7 @@ export async function claimNextConvertedUploadJob() {
         id: randomUUID(),
         jobId: row.id,
         level: "info",
-        message: "Upload worker claimed converted job after the batch conversion gate cleared.",
+        message: "Upload worker claimed converted job.",
         createdAt: now,
       })
       .run();
